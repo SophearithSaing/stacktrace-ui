@@ -1,0 +1,11 @@
+<div class="empty-state" [attr.data-variant]="variant()">
+  <p class="empty-state-title">{{ title() }}</p>
+  @if (description()) {
+    <p>{{ description() }}</p>
+  }
+  @if (actionLabel()) {
+    <button type="button" class="button-text" (click)="requestAction()">
+      {{ actionLabel() }}
+    </button>
+  }
+</div>
