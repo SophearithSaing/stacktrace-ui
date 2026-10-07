@@ -408,7 +408,6 @@ app-design-system-section {
 
 .ds-avatar-row > div,
 .ds-avatar-sizes > div,
-.ds-reaction-vocabulary > div,
 .ds-space > div,
 .ds-radius > div {
   display: grid;
@@ -473,13 +472,6 @@ app-design-system-section {
 
 .ds-tabs-board {
   margin-top: var(--space-lg);
-}
-
-.ds-reaction-vocabulary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-lg);
-  font-size: var(--font-label);
 }
 
 .ds-layout-model {
@@ -733,4 +725,29 @@ app-design-system-section {
   max-width: var(--docs-hero-copy-width);
   margin-inline: auto;
   padding: var(--space-2xl) var(--space-lg);
+}
+
+.ds-profile-specimen {
+  max-width: var(--profile-width);
+  margin-top: var(--space-lg);
+}
+
+.ds-content-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr);
+  border: var(--border-width) solid var(--line-dark);
+  background: var(--surface);
+}
+
+.ds-content-stage > app-post {
+  padding-inline: var(--space-lg);
+}
+
+.ds-content-stage .conversation-post {
+  border-bottom: 0;
+}
+
+.ds-content-anatomy {
+  padding: var(--docs-board-inset);
+  border-left: var(--border-width) solid var(--line-dark);
 }

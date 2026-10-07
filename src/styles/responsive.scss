@@ -7,6 +7,23 @@ $docs-mobile: 680px;
 $docs-small: 390px;
 
 @media (max-width: $product-mobile) {
+  .post-main {
+    padding-left: 0;
+  }
+
+  .post-actions {
+    gap: var(--post-actions-mobile-gap);
+  }
+
+  .profile-cover {
+    min-height: var(--profile-cover-mobile-height);
+    padding: var(--space-lg);
+  }
+
+  .profile-main {
+    padding-inline: var(--space-lg);
+  }
+
   .search-input {
     min-height: var(--control-height);
     padding-right: var(--space-md);
@@ -113,6 +130,15 @@ $docs-small: 390px;
   .ds-type-scale > div,
   .ds-badge-board {
     grid-template-columns: 1fr;
+  }
+
+  .ds-content-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-content-anatomy {
+    border-top: var(--border-width) solid var(--line-dark);
+    border-left: 0;
   }
 
   .ds-principles article + article,
