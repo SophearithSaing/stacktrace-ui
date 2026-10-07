@@ -12,6 +12,23 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Design system
+
+Open `/design-system` for Signal's live documentation. All 11 shared UI
+primitives are demonstrated with isolated local state; no demo reply or
+follow action is published or persisted. Section fragments (for example,
+`/design-system#controls`) support direct links and browser history.
+
+Conversation patterns are scheduled for phase 3 and the product feed for
+phase 4. `/` is a minimal entry page until the product shell is implemented.
+
+Validation uses Angular/Vitest and structural axe-core scans. Browser checks
+use Playwright with Chrome for full axe scans, keyboard interactions, and
+overflow checks at the documentation breakpoints (900, 680, and 390px).
+Playwright is currently temporary validation tooling, not a configured
+repository e2e target. Test widths on both sides of each breakpoint, plus
+320px; the scrollable layout table must not overflow the whole page.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

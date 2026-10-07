@@ -46,6 +46,10 @@ except the green signup action on the inverse dispatch card.
 Initials are white except Rust (`#F4E9DD`). The observer uses Y on `#738177`.
 Keep avatar/profile themes centrally registered.
 
+Accessible production variants: `--text-secondary: #58655C` for small text,
+`--focus-color: #3D6815` for focus/status, and observer background `#58655C`
+for readable white initials. Reference palette tokens remain unchanged.
+
 ### Code and reaction surfaces
 
 - Code: background `#1C2822`, border `#33423B`, text `#C9D5CE`; keywords green,
@@ -96,26 +100,40 @@ specimens stack with a 62px header; at ≤ 390px dense grids reduce further.
 Show the nine reference sections using real components with isolated demo
 state. Keep anchor targets visible and provide a return-to-product link.
 
+The page is available now. Reactions, content, and profile specimens are
+explicitly deferred to phase 3; real shell examples arrive in phase 4.
+Swatch labels use readable surfaces rather than text over low-contrast colors.
+
 ## Components and composition
 
-**All 35 components below are planned, not available yet.** Update availability,
-APIs, and variants as each lands. The starter `App`/`CliTest` are not Signal UI.
+**Available: 13 components**, including the 11 shared UI primitives and the
+two documentation components. The remaining 22 components are planned.
+Styles load through `src/styles.scss`; tokens, foundations, primitives,
+documentation, and responsive rules live in `src/styles/`.
 
-### Shared UI — `src/app/shared/ui/` (11 planned)
+### Shared UI — `src/app/shared/ui/` (11 available)
 
-| Component       | Intended usage and variants                                                  |
-| --------------- | ---------------------------------------------------------------------------- |
-| `Icon`          | Shared SVG vocabulary; decorative or meaningfully labelled.                  |
-| `Brand`         | Stacktrace and Signal identities; desktop, mobile, and footer contexts.      |
-| `Avatar`        | Agent/human identity; standard, quote, reply, suggestion, and profile sizes. |
-| `Badge`         | Verified, LIVE, tag, and notification-count treatments.                      |
-| `AgentIdentity` | Name/handle/time/status hierarchy; optional avatar and verification.         |
-| `FollowButton`  | Compact and profile contexts; follow/following from one shared state.        |
-| `SearchField`   | Labelled search, shortcut hint, result list, and empty results.              |
-| `ReplyInput`    | Validated reply entry and submission with native form semantics.             |
-| `Tabs`          | Selected state and keyboard-accessible content/filter switching.             |
-| `EmptyState`    | Clear explanation and optional relevant recovery action.                     |
-| `Toast`         | Polite, concise feedback without interrupting keyboard focus.                |
+Selectors are `app-` plus the kebab-case name (for example, `app-search-field`).
+`*` marks required inputs; `value`, `selected`, and `open` support two-way binding.
+
+| Component       | Main inputs                                                                                        | Outputs                                   |
+| --------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `Icon`          | `name*`, `size`, `label` (empty = decorative)                                                      | —                                         |
+| `Brand`         | `product`, `variant`, `href` (router destination)                                                  | —                                         |
+| `Avatar`        | `agent`, `size`, `interactive`, `decorative`, `disabled`                                           | `profileRequested`                        |
+| `Badge`         | `variant` (verified/live/tag/count), `text`, `label`                                               | —                                         |
+| `AgentIdentity` | `agent`, `name`, `handle`, `time`, `status`, `verified`, `showAvatar`, `avatarSize`, `interactive` | `profileRequested`                        |
+| `FollowButton`  | `agentName*`, `agent`, `following`, `disabled`, `variant` (compact/profile)                        | `toggleRequested` (next boolean)          |
+| `SearchField`   | `id*`, `label`, `placeholder`, `value`, `results`, `loading`, `disabled`, `shortcut`               | `valueChange`, `resultSelected`           |
+| `ReplyInput`    | `id*`, `label`, `placeholder`, `value`, `disabled`                                                 | `valueChange`, `submitted` (trimmed text) |
+| `Tabs`          | `id*`, `items*`, `label`, `selected`                                                               | `selectedChange`                          |
+| `EmptyState`    | `title*`, `description`, `actionLabel`, `variant` (default/compact)                                | `actionRequested`                         |
+| `Toast`         | `message`, `open`, `duration` (2200ms; 0 = persistent)                                             | `openChange`, `dismissed`                 |
+
+Use unique `id` values for search, reply, and tabs. Search accepts typed
+`SearchResult` entries; enable `shortcut` on only the primary search instance.
+Tabs accept `TabItem` entries with optional `disabled`/`panelId`; consumers
+provide matching panels. Follow state stays with the container.
 
 ### Shared patterns — `src/app/shared/patterns/` (9 planned)
 
@@ -145,12 +163,12 @@ Shared UI/patterns must not import pages or product-specific state.
 | `ContextRail`    | Compose the feed's supporting widgets without duplicate card styles. |
 | `AppShell`       | Responsive product regions and the routed reading column.            |
 
-### Pages and local components — `src/app/pages/` (9 planned)
+### Pages and local components — `src/app/pages/` (2 available, 7 planned)
 
 | Component             | Intended home and usage                                           |
 | --------------------- | ----------------------------------------------------------------- |
-| `DesignSystemSection` | `design-system/`; numbered heading and specimen region.           |
-| `DesignSystemPage`    | `design-system/`; live documentation, independent shell.          |
+| `DesignSystemSection` | Available: numbered heading and projected specimens.              |
+| `DesignSystemPage`    | Available: lazy `/design-system`, independent docs shell.         |
 | `FeedPage`            | `feed/`; coordinate greeting, filtering, sorting, and posts.      |
 | `QuickComposer`       | `feed/components/`; inline/condensed creation entry point.        |
 | `PostComposer`        | `feed/components/`; modal text/quote composition and validation.  |
@@ -159,11 +177,20 @@ Shared UI/patterns must not import pages or product-specific state.
 | `SuggestedAgents`     | `feed/components/`; agent identities and shared following.        |
 | `DispatchSignup`      | `feed/components/`; inverse newsletter card and email validation. |
 
+`DesignSystemSection` inputs: required `id`, `number`, `title`; optional
+`description`, `category` (Foundations by default). Bind `[id]` to avoid
+duplicating the inner section ID on its Angular host. The page owns isolated
+demo state; fragments and scroll position drive the visible contents marker.
+
 ### Native controls and style primitives
 
 Use native controls with shared styles. Primary/outlined/text/icon buttons,
 cards, stacks, and dividers are primitives, not extra components. Use direct
 verb labels and expose focus, hover, selected, disabled, and validation states.
+
+Available classes: `surface-card`, `text-muted`, `text-meta`, `text-display`,
+`text-heading`, `text-title`, `text-body`, `stack-sm/md/lg`, `cluster`, `divider`,
+`button-primary/outline/text/icon`, `input-field`, `field-error`, `visually-hidden`.
 
 ## Content and interaction rules
 
@@ -179,6 +206,7 @@ verb labels and expose focus, hover, selected, disabled, and validation states.
 ## Accessibility
 
 - Meet WCAG AA: contrast, visible focus, target sizes, zoom, and keyboard access.
+- Structural axe checks run in Vitest; visual contrast/layout need browser review.
 - Label inputs and icon-only actions; do not rely on placeholders or color alone.
 - Expose selected/expanded/checked states; announce feedback politely.
 - Menus: keyboard navigation, Escape/outside dismissal, focus restoration.
