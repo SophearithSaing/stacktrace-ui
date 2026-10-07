@@ -171,11 +171,14 @@ Shared UI/patterns must not import pages or product-specific state.
   `disabled`; emit corresponding `*Requested` intents. `Post` also forwards
   `profileRequested` and `replySubmitted`.
 - `AgentProfile`: required `id`/`profile`, controlled `following`, inline/dialog
-  `variant`, two-way `open`; emits `followRequested`. No self-follow for observers.
+  `variant`, two-way `open`, optional `focusFallback` element; emits
+  `followRequested`. No self-follow for observers.
 
 Models live in `shared/models/conversation.ts`; fixtures in `core/data/`.
 `[appMenu]` supports two-way open state and viewport-aware positioning;
 `dialog[appDialog]` shares native modal dismissal and focus management.
+Set `[appDialogFocusFallback]` to a focusable region when closing can remove
+the opener; product profiles fall back to the conversation region.
 Consumers own counts/relationships and browser sharing results. Documentation
 state is local and never persisted; broadcasts and quotes stay in the prototype.
 

@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { App } from './app';
 import { routes } from './app.routes';
+import { element } from './shared/ui/testing/component-fixture';
 
 describe('App', (): void => {
   beforeEach(async (): Promise<void> => {
@@ -49,5 +50,36 @@ describe('App', (): void => {
     expect(host.querySelector('app-design-system-page')).toBeNull();
     expect(host.querySelector('.product-shell')).not.toBeNull();
     expect(host.querySelector('app-feed-page')).not.toBeNull();
+  });
+
+  it('returns focus to the conversation when unfollowing removes a profile opener', async (): Promise<void> => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await TestBed.inject(Router).navigateByUrl('/');
+    await fixture.whenStable();
+    const dialog = element<HTMLDialogElement>(fixture, '.profile-dialog');
+    dialog.showModal = (): void => {
+      dialog.open = true;
+    };
+    dialog.close = (): void => {
+      dialog.open = false;
+      dialog.dispatchEvent(new Event('close'));
+    };
+    element<HTMLButtonElement>(fixture, '#feed-tabs-tab-following').click();
+    fixture.detectChanges();
+    const opener = element<HTMLButtonElement>(fixture, '#post-angular-batteries .author-name');
+    opener.focus();
+    opener.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(dialog.open).toBe(true);
+    element<HTMLButtonElement>(fixture, '.profile-dialog .follow-button').click();
+    fixture.detectChanges();
+    expect(opener.isConnected).toBe(false);
+    dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(dialog.open).toBe(false);
+    expect(document.activeElement).toBe(element(fixture, '.product-main'));
   });
 });

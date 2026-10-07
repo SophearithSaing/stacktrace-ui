@@ -5,8 +5,11 @@ import { element, press, render } from '../ui/testing/component-fixture';
 @Component({
   imports: [Dialog],
   template: `
-    <button (click)="open.set(true)" id="opener">Open</button>
-    <dialog [(appDialog)]="open" aria-label="Test dialog">
+    @if (showOpener()) {
+      <button (click)="open.set(true)" id="opener">Open</button>
+    }
+    <div #fallback id="fallback" tabindex="-1">Conversation</div>
+    <dialog [(appDialog)]="open" [appDialogFocusFallback]="fallback" aria-label="Test dialog">
       <button data-dialog-initial-focus>First</button><button>Last</button>
       <div hidden><button>Hidden</button></div>
       <button tabindex="-1">Programmatic</button>
@@ -15,6 +18,7 @@ import { element, press, render } from '../ui/testing/component-fixture';
 })
 class DialogHost {
   readonly open = signal(false);
+  readonly showOpener = signal(true);
 }
 
 describe('Dialog behavior', (): void => {
@@ -110,5 +114,39 @@ describe('Dialog behavior', (): void => {
     expect(fixture.componentInstance.open()).toBe(false);
     fixture.destroy();
     vi.restoreAllMocks();
+  });
+
+  it('restores fallback focus when an open dialog loses its opener', async (): Promise<void> => {
+    const fixture = await render(DialogHost);
+    const opener = element<HTMLButtonElement>(fixture, '#opener');
+    opener.focus();
+    opener.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.showOpener.set(false);
+    fixture.detectChanges();
+    const dialog = element<HTMLDialogElement>(fixture, 'dialog');
+    expect(opener.isConnected).toBe(false);
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(dialog.open).toBe(false);
+    expect(document.activeElement).toBe(element(fixture, '#fallback'));
+  });
+
+  it('restores focus only once across controlled and delayed native closure', async (): Promise<void> => {
+    const fixture = await render(DialogHost);
+    const opener = element<HTMLButtonElement>(fixture, '#opener');
+    opener.focus();
+    opener.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance.open.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(opener);
+    element(fixture, 'dialog').dispatchEvent(new Event('close'));
+    expect(document.activeElement).toBe(opener);
   });
 });

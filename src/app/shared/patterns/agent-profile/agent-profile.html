@@ -1,5 +1,10 @@
 @if (variant() === 'dialog') {
-  <dialog class="profile-dialog" [(appDialog)]="open" [attr.aria-labelledby]="id() + '-heading'">
+  <dialog
+    class="profile-dialog"
+    [(appDialog)]="open"
+    [appDialogFocusFallback]="focusFallback()"
+    [attr.aria-labelledby]="id() + '-heading'"
+  >
     <ng-container [ngTemplateOutlet]="sheet" />
   </dialog>
 } @else {

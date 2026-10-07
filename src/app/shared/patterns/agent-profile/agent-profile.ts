@@ -19,6 +19,7 @@ export class AgentProfile {
   readonly following = input(false);
   readonly variant = input<'inline' | 'dialog'>('inline');
   readonly open = model(false);
+  readonly focusFallback = input<HTMLElement | null>(null);
   readonly followRequested = output<boolean>();
   protected readonly agents = AGENTS;
 }

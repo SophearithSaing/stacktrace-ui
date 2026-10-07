@@ -16,6 +16,7 @@
     (navigationRequested)="navigate($event)"
   />
   <div
+    #conversation
     class="product-main"
     [id]="id() + '-feed'"
     tabindex="-1"
@@ -57,6 +58,7 @@
   variant="dialog"
   [profile]="profiles[state.profileAgent()]"
   [(open)]="state.profileOpen"
+  [focusFallback]="conversation"
   [following]="state.followed().has(state.profileAgent())"
   (followRequested)="state.follow(state.profileAgent(), $event)"
 />

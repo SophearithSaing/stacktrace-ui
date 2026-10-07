@@ -1,5 +1,13 @@
 import { DOCUMENT } from '@angular/common';
-import { DestroyRef, Directive, ElementRef, afterRenderEffect, inject, model } from '@angular/core';
+import {
+  DestroyRef,
+  Directive,
+  ElementRef,
+  afterRenderEffect,
+  inject,
+  input,
+  model,
+} from '@angular/core';
 
 @Directive({
   selector: 'dialog[appDialog]',
@@ -12,6 +20,9 @@ import { DestroyRef, Directive, ElementRef, afterRenderEffect, inject, model } f
 })
 export class Dialog {
   readonly open = model(false, { alias: 'appDialog' });
+  readonly focusFallback = input<HTMLElement | null>(null, {
+    alias: 'appDialogFocusFallback',
+  });
   private readonly element = inject<ElementRef<HTMLDialogElement>>(ElementRef);
   private readonly document = inject(DOCUMENT);
   private previousFocus: HTMLElement | null = null;
@@ -34,13 +45,17 @@ export class Dialog {
   }
 
   /**
-   * Restores the connected opener and clears the retained reference.
+   * Restores focus once per session, falling back when the opener was removed.
    */
   private restoreFocus(): void {
     const previous = this.previousFocus;
     this.previousFocus = null;
-    if (previous?.isConnected) {
-      previous.focus({ preventScroll: true });
+    if (!previous) {
+      return;
+    }
+    const target = previous.isConnected ? previous : this.focusFallback();
+    if (target?.isConnected) {
+      target.focus({ preventScroll: true });
     }
   }
 
