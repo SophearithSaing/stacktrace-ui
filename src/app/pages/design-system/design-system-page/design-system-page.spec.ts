@@ -9,8 +9,12 @@ import { routes } from '../../../app.routes';
 describe('DesignSystemPage', (): void => {
   let fixture: ComponentFixture<DesignSystemPage>;
   let scrollDescriptor: PropertyDescriptor | undefined;
+  let clipboardDescriptor: PropertyDescriptor | undefined;
+  let shareDescriptor: PropertyDescriptor | undefined;
 
   beforeEach(async (): Promise<void> => {
+    clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    shareDescriptor = Object.getOwnPropertyDescriptor(navigator, 'share');
     scrollDescriptor = Object.getOwnPropertyDescriptor(window.history, 'scrollRestoration');
     Object.defineProperty(window.history, 'scrollRestoration', {
       configurable: true,
@@ -34,6 +38,16 @@ describe('DesignSystemPage', (): void => {
       Reflect.deleteProperty(window.history, 'scrollRestoration');
     }
     vi.restoreAllMocks();
+    for (const [key, descriptor] of [
+      ['clipboard', clipboardDescriptor],
+      ['share', shareDescriptor],
+    ] as const) {
+      if (descriptor) {
+        Object.defineProperty(navigator, key, descriptor);
+      } else {
+        Reflect.deleteProperty(navigator, key);
+      }
+    }
   });
 
   it('owns scroll restoration only while the documentation page is open', (): void => {
@@ -42,7 +56,7 @@ describe('DesignSystemPage', (): void => {
     expect(window.history.scrollRestoration).toBe('auto');
   });
 
-  it('renders all nine sections, all primitive specimens, and phase notices', (): void => {
+  it('renders all nine sections, live primitives and patterns, and phase notices', (): void => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelectorAll('.ds-nav nav a')).toHaveLength(9);
     for (const section of SECTIONS) {
@@ -65,7 +79,8 @@ describe('DesignSystemPage', (): void => {
       expect(host.querySelector(selector)).not.toBeNull();
     }
     expect(host.querySelectorAll('.ds-avatar-row app-avatar')).toHaveLength(8);
-    expect(host.textContent).toContain('Phase 3: real Post');
+    expect(host.querySelector('app-post')).not.toBeNull();
+    expect(host.querySelector('app-agent-profile')).not.toBeNull();
     expect(host.textContent).toContain('Real shell specimens arrive in phase 4');
   });
 
@@ -82,6 +97,113 @@ describe('DesignSystemPage', (): void => {
     expect(buttons[0].getAttribute('aria-pressed')).toBe('false');
     expect(buttons[1].getAttribute('aria-pressed')).toBe('false');
     expect(element(fixture, '.toast').textContent).toContain('Demo: unfollowed');
+  });
+
+  it('shares reaction add/change/remove state and totals across live specimens', async (): Promise<void> => {
+    const inline = '#docs-inline-reactions-menu ';
+    const summary = 'app-post .reaction-summary';
+    element<HTMLButtonElement>(fixture, inline + '[data-reaction="useful"]').click();
+    fixture.detectChanges();
+    expect(element(fixture, summary).getAttribute('aria-label')).toContain('843 reactions');
+    expect(
+      element(fixture, 'app-post [data-menu-trigger][data-reaction]').getAttribute('data-reaction'),
+    ).toBe('useful');
+    element<HTMLButtonElement>(fixture, 'app-post app-reaction-picker [data-menu-trigger]').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    element<HTMLButtonElement>(
+      fixture,
+      'app-post [role="menuitemradio"][data-reaction="ship"]',
+    ).click();
+    fixture.detectChanges();
+    expect(element(fixture, summary).getAttribute('aria-label')).toContain('Ship it: 1');
+    expect(element(fixture, inline + '[data-reaction="ship"]').getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    element<HTMLButtonElement>(fixture, inline + '[data-reaction="ship"]').click();
+    fixture.detectChanges();
+    expect(element(fixture, summary).getAttribute('aria-label')).toContain('842 reactions');
+  });
+
+  it('adds replies safely, updates counts, and keeps bookmarks container-owned', (): void => {
+    element<HTMLButtonElement>(fixture, 'app-post [aria-label="Replies, 38"]').click();
+    fixture.detectChanges();
+    const input = element<HTMLInputElement>(fixture, '#docs-post-replies-input');
+    type(input, ' <b>Local reply</b> ');
+    fixture.detectChanges();
+    element(fixture, 'app-comment-thread form').dispatchEvent(
+      new Event('submit', { cancelable: true }),
+    );
+    fixture.detectChanges();
+    expect(element(fixture, '.reply-list').textContent).toContain('<b>Local reply</b>');
+    expect(element(fixture, '.reply-list').querySelector('b')).toBeNull();
+    expect(element(fixture, 'app-post [aria-label="Replies, 39"]')).toBeTruthy();
+    expect(input.value).toBe('');
+    element<HTMLButtonElement>(fixture, '.bookmark-action').click();
+    fixture.detectChanges();
+    expect(element(fixture, '.bookmark-action').getAttribute('aria-pressed')).toBe('true');
+    element<HTMLButtonElement>(fixture, 'app-post [aria-label="Replies, 39"]').click();
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-comment-thread')).toBeNull();
+  });
+
+  it('reverses repost counts and renders a local quote without publishing', (): void => {
+    const menu = element(fixture, '#docs-inline-share-menu');
+    const buttons = menu.querySelectorAll<HTMLButtonElement>('button');
+    buttons[0].click();
+    fixture.detectChanges();
+    expect(buttons[0].textContent).toContain('Undo repost');
+    expect(element(fixture, 'app-post app-share-menu [data-menu-trigger]').textContent).toContain(
+      '127',
+    );
+    buttons[0].click();
+    fixture.detectChanges();
+    expect(element(fixture, 'app-post app-share-menu [data-menu-trigger]').textContent).toContain(
+      '126',
+    );
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(element(fixture, '#reactions app-quoted-post').textContent).toContain('three sprints');
+    expect(element(fixture, '.toast').textContent).toContain('Publishing arrives in phase 4');
+  });
+
+  it('reports clipboard success only after completion and handles failures', async (): Promise<void> => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    const buttons = element(fixture, '#docs-inline-share-menu').querySelectorAll<HTMLButtonElement>(
+      'button',
+    );
+    buttons[3].click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/design-system#content'));
+    expect(element(fixture, '.toast').textContent).toContain('link copied');
+    writeText.mockRejectedValue(new Error('Denied'));
+    buttons[3].click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element(fixture, '.toast').textContent).toContain('cancelled or failed');
+  });
+
+  it('handles unavailable, successful, and cancelled native sharing', async (): Promise<void> => {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+    const buttons = element(fixture, '#docs-inline-share-menu').querySelectorAll<HTMLButtonElement>(
+      'button',
+    );
+    buttons[2].click();
+    fixture.detectChanges();
+    expect(element(fixture, '.toast').textContent).toContain('Try Copy link');
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    buttons[2].click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element(fixture, '.toast').textContent).toContain('Specimen link shared');
+    share.mockRejectedValue(new DOMException('Cancelled', 'AbortError'));
+    buttons[2].click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element(fixture, '.toast').textContent).toContain('cancelled or failed');
   });
 
   it('filters real search results and exposes empty results', (): void => {

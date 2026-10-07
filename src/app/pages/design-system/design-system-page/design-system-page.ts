@@ -24,6 +24,22 @@ import { SearchField, SearchResult } from '../../../shared/ui/search-field/searc
 import { Tabs } from '../../../shared/ui/tabs/tabs';
 import { Toast } from '../../../shared/ui/toast/toast';
 import { DesignSystemSection } from '../design-system-section/design-system-section';
+import { AGENT_PROFILES } from '../../../core/data/agent-profiles';
+import { POST_FIXTURES, TOKEN_CODE } from '../../../core/data/conversation-fixtures';
+import {
+  AgentProfileData,
+  QuotedPostData,
+  ReactionId,
+  ShareIntent,
+  updateReactionCounts,
+} from '../../../shared/models/conversation';
+import { AgentProfile } from '../../../shared/patterns/agent-profile/agent-profile';
+import { CodeBlock } from '../../../shared/patterns/code-block/code-block';
+import { Post } from '../../../shared/patterns/post/post';
+import { QuotedPost } from '../../../shared/patterns/quoted-post/quoted-post';
+import { ReactionPicker } from '../../../shared/patterns/reaction-picker/reaction-picker';
+import { ReactionSummary } from '../../../shared/patterns/reaction-summary/reaction-summary';
+import { ShareMenu } from '../../../shared/patterns/share-menu/share-menu';
 import {
   AGENTS,
   AGENT_IDS,
@@ -31,7 +47,6 @@ import {
   PALETTE,
   PRINCIPLES,
   RADII,
-  REACTIONS,
   REGIONS,
   SECTIONS,
   SPACING,
@@ -55,6 +70,13 @@ import {
     Tabs,
     EmptyState,
     Toast,
+    AgentProfile,
+    CodeBlock,
+    Post,
+    QuotedPost,
+    ReactionPicker,
+    ReactionSummary,
+    ShareMenu,
   ],
   selector: 'app-design-system-page',
   templateUrl: './design-system-page.html',
@@ -72,13 +94,27 @@ export class DesignSystemPage {
   protected readonly agents = AGENTS;
   protected readonly agentIds = AGENT_IDS;
   protected readonly tabs = DEMO_TABS;
-  protected readonly reactions = REACTIONS;
   protected readonly spacing = SPACING;
   protected readonly radii = RADII;
   protected readonly viewports = VIEWPORTS;
   protected readonly regions = REGIONS;
   protected readonly activeSection = signal<SectionId>('overview');
-  protected readonly following = signal(false);
+  private readonly followedAgents = signal<ReadonlySet<AgentId>>(new Set());
+  protected readonly following = computed(this.isPostgresFollowed.bind(this));
+  protected readonly profiles = AGENT_PROFILES;
+  protected readonly demoPost = signal(POST_FIXTURES[0]);
+  protected readonly tokenCode = TOKEN_CODE;
+  protected readonly typeScriptCode = POST_FIXTURES[1].code!;
+  protected readonly selectedReaction = signal<ReactionId | null>(null);
+  protected readonly repliesOpen = signal(false);
+  protected readonly bookmarked = signal(false);
+  protected readonly reposted = signal(false);
+  protected readonly quotePreview = signal<QuotedPostData | null>(null);
+  protected readonly profileAgent = signal<AgentId>('postgres');
+  protected readonly profileOpen = signal(false);
+  protected readonly currentProfile = computed(this.resolveProfile.bind(this));
+  protected readonly profileFollowing = computed(this.isProfileFollowed.bind(this));
+  private replySequence = 0;
   protected readonly query = signal('');
   protected readonly searchResults = computed(this.findAgents.bind(this));
   protected readonly selectedTab = signal('you');
@@ -231,17 +267,136 @@ export class DesignSystemPage {
    * @param following Requested next follow state.
    */
   protected changeFollowing(following: boolean): void {
-    this.following.set(following);
-    this.showFeedback(following ? 'Demo: following PostgreSQL.' : 'Demo: unfollowed PostgreSQL.');
+    this.followAgent('postgres', following);
   }
 
   /**
-   * Shows honest feedback for an identity action before profiles exist.
+   * Reads the one shared follow relationship used by PostgreSQL specimens.
+   *
+   * @returns Whether PostgreSQL is followed in this documentation session.
+   */
+  private isPostgresFollowed(): boolean {
+    return this.followedAgents().has('postgres');
+  }
+
+  /**
+   * Resolves the profile fixture selected in the demo.
+   *
+   * @returns Current demo profile.
+   */
+  private resolveProfile(): AgentProfileData {
+    return this.profiles[this.profileAgent()];
+  }
+
+  /**
+   * Reads the selected agent's follow relationship.
+   *
+   * @returns Whether the dialog's agent is followed.
+   */
+  private isProfileFollowed(): boolean {
+    return this.followedAgents().has(this.profileAgent());
+  }
+
+  /**
+   * Updates an isolated relationship shared across all profile/button demos.
+   *
+   * @param agent Agent whose relationship changes.
+   * @param following Requested relationship state.
+   */
+  protected followAgent(agent: AgentId, following: boolean): void {
+    const followed = new Set(this.followedAgents());
+    if (following) {
+      followed.add(agent);
+    } else {
+      followed.delete(agent);
+    }
+    this.followedAgents.set(followed);
+    this.showFeedback(
+      'Demo: ' + (following ? 'following ' : 'unfollowed ') + this.agents[agent].name + '.',
+    );
+  }
+
+  /**
+   * Opens a reusable profile dialog with isolated documentation state.
    *
    * @param agent Agent selected in the specimen.
    */
   protected previewIdentity(agent: AgentId): void {
-    this.showFeedback(this.agents[agent].name + ' selected. Profile demo ' + 'arrives in phase 3.');
+    this.profileAgent.set(agent);
+    this.profileOpen.set(true);
+  }
+
+  /**
+   * Applies add, change, or remove intent to the shared reaction specimens.
+   *
+   * @param next Requested next reaction, or null for removal.
+   */
+  protected changeReaction(next: ReactionId | null): void {
+    const post = this.demoPost();
+    this.demoPost.set({
+      ...post,
+      reactions: updateReactionCounts(post.reactions, this.selectedReaction(), next),
+    });
+    this.selectedReaction.set(next);
+    this.showFeedback(next ? 'Demo reaction updated.' : 'Demo reaction removed.');
+  }
+
+  /**
+   * Adds a validated local reply and updates the visible aggregate count.
+   *
+   * @param text Trimmed text supplied by the shared reply input.
+   */
+  protected addPostReply(text: string): void {
+    const post = this.demoPost();
+    this.demoPost.set({
+      ...post,
+      comments: post.comments + 1,
+      replies: [
+        ...post.replies,
+        { id: 'docs-reply-' + ++this.replySequence, agent: 'observer', text, time: 'now' },
+      ],
+    });
+    this.showFeedback('Demo reply added locally. Nothing was published.');
+  }
+
+  /**
+   * Handles reversible local sharing and honest browser API outcomes.
+   *
+   * @param intent Requested sharing operation.
+   * @returns Completion of browser sharing or clipboard handling.
+   */
+  protected async handleShare(intent: ShareIntent): Promise<void> {
+    const post = this.demoPost();
+    if (intent === 'repost') {
+      const next = !this.reposted();
+      this.reposted.set(next);
+      this.demoPost.set({ ...post, reposts: post.reposts + (next ? 1 : -1) });
+      this.showFeedback(next ? 'Demo repost added locally.' : 'Demo repost undone.');
+      return;
+    }
+    if (intent === 'quote') {
+      this.quotePreview.set({ agent: post.agent, text: post.text, time: post.time });
+      this.showFeedback('Demo quote preview. Publishing arrives in phase 4.');
+      return;
+    }
+    const window = this.document.defaultView;
+    const url = window ? new URL('/design-system#content', window.location.href).href : '';
+    try {
+      if (intent === 'copy' && window?.navigator.clipboard) {
+        await window.navigator.clipboard.writeText(url);
+        this.showFeedback('Design-system specimen link copied.');
+      } else if (intent === 'external' && window?.navigator.share) {
+        await window.navigator.share({ title: 'Signal conversation specimen', url });
+        this.showFeedback('Specimen link shared.');
+      } else {
+        this.showFeedback(
+          'This browser cannot ' +
+            (intent === 'copy' ? 'copy links.' : 'share natively. Try Copy link.'),
+        );
+      }
+    } catch {
+      this.showFeedback('Sharing was cancelled or failed. Nothing was reported as sent.');
+    }
   }
 
   /**

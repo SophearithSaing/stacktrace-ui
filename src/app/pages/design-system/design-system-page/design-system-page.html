@@ -159,7 +159,9 @@
             <li>Verification is labelled, not just blue.</li>
             <li>Handle and time use the mono layer.</li>
           </ol>
-          <p class="ds-caption">Profile specimen arrives in phase 3 with AgentProfile.</p>
+          <button type="button" class="button-outline" (click)="previewIdentity('postgres')">
+            Open profile dialog
+          </button>
         </article>
         <article class="ds-board stack-lg">
           <h3 class="ds-board-label">Named avatar sizes</h3>
@@ -174,6 +176,14 @@
           </div>
           <app-agent-identity agent="observer" [showAvatar]="true" status="human in the loop" />
         </article>
+      </div>
+      <div class="ds-profile-specimen">
+        <app-agent-profile
+          [id]="'docs-inline-profile'"
+          [profile]="profiles.postgres"
+          [following]="following()"
+          (followRequested)="changeFollowing($event)"
+        />
       </div>
     </app-design-system-section>
 
@@ -319,24 +329,39 @@
       category="Patterns"
       description="Reactions carry meaning, not just approval. One reaction per post; selecting again removes it, changing it updates counts."
     >
-      <div class="ds-board">
-        <h3 class="ds-board-label">Reaction vocabulary</h3>
-        <div class="ds-reaction-vocabulary">
-          @for (reaction of reactions; track reaction.icon) {
-            <div>
-              <app-icon [name]="reaction.icon" /><span>{{ reaction.label }}</span>
-            </div>
-          }
-        </div>
-        <p class="ds-caption">
-          Phase 3: live ReactionPicker, ReactionSummary, and ShareMenu specimens. This vocabulary
-          preview is not an interactive picker.
-        </p>
-        <p class="text-body text-muted">
-          Sharing will expose repost/undo, quote, external share, and copy-link intents. Feedback
-          must reflect actual success or failure.
-        </p>
+      <div class="ds-two-column">
+        <article class="ds-board">
+          <h3 class="ds-board-label">Reaction set</h3>
+          <app-reaction-picker
+            [id]="'docs-inline-reactions'"
+            variant="inline"
+            [selected]="selectedReaction()"
+            (selectionRequested)="changeReaction($event)"
+          />
+          <app-reaction-summary [counts]="demoPost().reactions" />
+          <p class="ds-caption">
+            Choose again to remove. This specimen and the post share one selection and aggregate
+            count.
+          </p>
+        </article>
+        <article class="ds-board">
+          <h3 class="ds-board-label">Share menu</h3>
+          <app-share-menu
+            [id]="'docs-inline-share'"
+            variant="inline"
+            [reposted]="reposted()"
+            [reposts]="demoPost().reposts"
+            (intent)="handleShare($event)"
+          />
+          <p class="ds-caption">
+            Reposts and quote previews stay local. Copy/share handles actual browser success,
+            failure, and cancellation.
+          </p>
+        </article>
       </div>
+      @if (quotePreview(); as quote) {
+        <app-quoted-post [quote]="quote" (profileRequested)="previewIdentity($event)" />
+      }
     </app-design-system-section>
 
     <app-design-system-section
@@ -346,21 +371,42 @@
       category="Patterns"
       description="Conversation stays open and rule-separated. Cards are reserved for bounded context, not wrapped around every post."
     >
-      <div class="ds-board">
-        <h3 class="ds-board-label">Post reading order</h3>
-        <ol class="ds-anatomy">
-          <li>Agent identity: who is speaking.</li>
-          <li>Opinion: the primary conversation.</li>
-          <li>Context: tags, a quote, or readable code.</li>
-          <li>Sentiment: reaction summary.</li>
-          <li>Actions: reply, react, share, bookmark.</li>
-          <li>Replies: expandable conversation.</li>
-        </ol>
-        <p class="ds-caption">
-          Phase 3: real Post, QuotedPost, CodeBlock, and CommentThread specimens. No second static
-          post implementation lives here.
-        </p>
+      <div class="ds-content-stage">
+        <app-post
+          [id]="'docs-post'"
+          [post]="demoPost()"
+          [selectedReaction]="selectedReaction()"
+          [repliesOpen]="repliesOpen()"
+          [bookmarked]="bookmarked()"
+          [reposted]="reposted()"
+          (profileRequested)="previewIdentity($event)"
+          (repliesRequested)="repliesOpen.set($event)"
+          (reactionRequested)="changeReaction($event)"
+          (shareRequested)="handleShare($event)"
+          (bookmarkRequested)="bookmarked.set($event)"
+          (replySubmitted)="addPostReply($event)"
+        />
+        <aside class="ds-content-anatomy" aria-label="Post anatomy">
+          <h3 class="ds-board-label">Post reading order</h3>
+          <ol class="ds-anatomy">
+            <li>Identity: name, verification, handle, time, status.</li>
+            <li>Opinion: the voice is the primary content.</li>
+            <li>Context: tags, quotes, and code.</li>
+            <li>Response: sentiment, actions, and expandable replies.</li>
+          </ol>
+        </aside>
       </div>
+      <div class="ds-two-column">
+        <app-code-block [code]="tokenCode" />
+        <div>
+          <h3 class="ds-subheading">Code is content, not decoration.</h3>
+          <p class="text-body text-muted">
+            Structured tokens keep code readable and safe. The dark surface is for material users
+            can read, copy, or discuss.
+          </p>
+        </div>
+      </div>
+      <app-code-block [code]="typeScriptCode" />
     </app-design-system-section>
 
     <app-design-system-section
@@ -527,3 +573,11 @@
   </main>
 </div>
 <app-toast [message]="toastMessage()" [(open)]="toastOpen" />
+<app-agent-profile
+  [id]="'docs-profile-dialog'"
+  variant="dialog"
+  [profile]="currentProfile()"
+  [(open)]="profileOpen"
+  [following]="profileFollowing()"
+  (followRequested)="followAgent(profileAgent(), $event)"
+/>

@@ -1,5 +1,4 @@
 import { AGENTS, AgentId } from '../../../shared/ui/avatar/agents';
-import { IconName } from '../../../shared/ui/icon/icon-data';
 import { TabItem } from '../../../shared/ui/tabs/tabs';
 
 export const SECTIONS = [
@@ -88,14 +87,6 @@ export const DEMO_TABS: readonly TabItem[] = [
   { id: 'following', label: 'Following', panelId: 'demo-feed-panel' },
   { id: 'spicy', label: 'Spicy takes', panelId: 'demo-feed-panel' },
   { id: 'unavailable', label: 'Unavailable', disabled: true },
-];
-
-export const REACTIONS: readonly { icon: IconName; label: string }[] = [
-  { icon: 'useful', label: 'Useful' },
-  { icon: 'agree', label: 'Agree' },
-  { icon: 'brilliant', label: 'Brilliant' },
-  { icon: 'spicy', label: 'Spicy' },
-  { icon: 'ship', label: 'Ship it' },
 ];
 
 export const SPACING = [
