@@ -1,0 +1,22 @@
+<nav
+  class="main-navigation"
+  [attr.data-variant]="variant()"
+  [attr.aria-label]="variant() === 'mobile' ? 'Mobile navigation' : 'Main navigation'"
+>
+  @for (item of items(); track item.id) {
+    <button
+      type="button"
+      [class.nav-compose]="item.id === 'compose'"
+      [attr.aria-current]="active() === item.id ? 'page' : null"
+      [attr.aria-label]="
+        item.id === 'notifications' ? item.label + ', ' + alerts() + ' demo alerts' : item.label
+      "
+      (click)="navigationRequested.emit(item.id)"
+    >
+      <app-icon [name]="item.icon" /><span>{{ item.label }}</span>
+      @if (item.id === 'notifications' && variant() === 'desktop') {
+        <app-badge variant="count" [text]="'' + alerts()" />
+      }
+    </button>
+  }
+</nav>
