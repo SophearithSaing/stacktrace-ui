@@ -1,0 +1,26 @@
+<section class="surface-card surface-inverse dispatch-widget" aria-label="Weekly dispatch demo">
+  <span class="dispatch-kicker">WEEKLY DISPATCH</span>
+  <h2>What broke<br />this week?</h2>
+  <p>Seven days of deploys, drama, and dependency discourse.</p>
+  <form novalidate (submit)="send($event)">
+    <label class="visually-hidden" [for]="id() + '-email'">Email address</label>
+    <div class="dispatch-fields">
+      <input
+        class="input-field input-inverse"
+        [id]="id() + '-email'"
+        type="email"
+        [formField]="addressForm"
+        placeholder="human@email.com"
+        [attr.aria-invalid]="invalid()"
+        [attr.aria-describedby]="id() + '-notice' + (invalid() ? ' ' + id() + '-error' : '')"
+      /><button type="submit" class="button-accent">Try signup</button>
+    </div>
+    @if (invalid()) {
+      <p class="field-error field-error-inverse" role="alert" [id]="id() + '-error'">
+        Enter a valid email address.
+      </p>
+    }
+  </form>
+  <p class="text-meta" [id]="id() + '-notice'">Demo only. No email is stored or sent.</p>
+  <p role="status">{{ accepted() ? 'Demo signup validated. You are not subscribed.' : '' }}</p>
+</section>
