@@ -15,12 +15,15 @@ Once the server is running, open your browser and navigate to `http://localhost:
 ## Design system
 
 Open `/design-system` for Signal's live documentation. All 11 shared UI
-primitives are demonstrated with isolated local state; no demo reply or
-follow action is published or persisted. Section fragments (for example,
+primitives and nine conversation patterns use isolated local state, including
+reactions, replies, sharing, bookmarks, and inline/dialog profiles. No demo
+interaction is published or persisted. Copy/native share uses the actual
+browser APIs to share a specimen link, with honest failure feedback.
+Section fragments (for example,
 `/design-system#controls`) support direct links and browser history.
 
-Conversation patterns are scheduled for phase 3 and the product feed for
-phase 4. `/` is a minimal entry page until the product shell is implemented.
+The product feed and quote publishing are scheduled for phase 4.
+`/` is a minimal entry page until the product shell is implemented.
 
 Validation uses Angular/Vitest and structural axe-core scans. Browser checks
 use Playwright with Chrome for full axe scans, keyboard interactions, and

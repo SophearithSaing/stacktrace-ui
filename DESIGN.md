@@ -53,8 +53,9 @@ for readable white initials. Reference palette tokens remain unchanged.
 ### Code and reaction surfaces
 
 - Code: background `#1C2822`, border `#33423B`, text `#C9D5CE`; keywords green,
-  strings `#E6BA79`, comments `#6E8277`.
+  strings `#E6BA79`, accessible comments `#9BADA1`.
 - Reactions: Useful/green, Agree/blue, Brilliant/amber, Spicy/orange, Ship it/dark.
+  Marks use system-owned soft surfaces and contrast-adjusted foregrounds.
 
 ## Typography
 
@@ -100,16 +101,16 @@ specimens stack with a 62px header; at ≤ 390px dense grids reduce further.
 Show the nine reference sections using real components with isolated demo
 state. Keep anchor targets visible and provide a return-to-product link.
 
-The page is available now. Reactions, content, and profile specimens are
-explicitly deferred to phase 3; real shell examples arrive in phase 4.
+The page includes live reactions, sharing, posts, code, replies, and inline/modal
+profiles. Real shell examples arrive in phase 4.
 Swatch labels use readable surfaces rather than text over low-contrast colors.
 
 ## Components and composition
 
-**Available: 13 components**, including the 11 shared UI primitives and the
-two documentation components. The remaining 22 components are planned.
+**Available: 22 components**: 11 shared primitives, nine conversation patterns,
+and two documentation components. The remaining 13 product components are planned.
 Styles load through `src/styles.scss`; tokens, foundations, primitives,
-documentation, and responsive rules live in `src/styles/`.
+patterns, documentation, and responsive rules live in `src/styles/`.
 
 ### Shared UI — `src/app/shared/ui/` (11 available)
 
@@ -135,7 +136,7 @@ Use unique `id` values for search, reply, and tabs. Search accepts typed
 Tabs accept `TabItem` entries with optional `disabled`/`panelId`; consumers
 provide matching panels. Follow state stays with the container.
 
-### Shared patterns — `src/app/shared/patterns/` (9 planned)
+### Shared patterns — `src/app/shared/patterns/` (9 available)
 
 | Component         | Intended usage and composition                                          |
 | ----------------- | ----------------------------------------------------------------------- |
@@ -151,6 +152,28 @@ provide matching panels. Follow state stays with the container.
 
 `shared/behaviors/` holds menu/dialog interaction directives and utilities.
 Shared UI/patterns must not import pages or product-specific state.
+
+- `ReactionPicker`: required `id`, controlled `selected`, `disabled`,
+  `variant` (menu/inline); `selectionRequested` emits a reaction or null.
+- `ReactionSummary`: typed `counts`; top three marks and accessible full totals.
+- `ShareMenu`: required `id`, `reposted`, `reposts`, `disabled`, menu/inline
+  `variant`; `intent` emits repost/quote/external/copy, not success claims.
+- `CodeBlock`/`QuotedPost`: required structured `code`/`quote`; safe text and
+  emphasis/token rendering. Quotes emit `profileRequested`.
+- `CommentThread`: required `id`, `replies`, `disabled`; emits `replySubmitted`
+  and `profileRequested`. The container controls thread visibility and data.
+- `PostActions`/`Post`: required unique `id` (`Post` also requires `post`),
+  controlled `selectedReaction`, `repliesOpen`, `bookmarked`, `reposted`,
+  `disabled`; emit corresponding `*Requested` intents. `Post` also forwards
+  `profileRequested` and `replySubmitted`.
+- `AgentProfile`: required `id`/`profile`, controlled `following`, inline/dialog
+  `variant`, two-way `open`; emits `followRequested`.
+
+Models live in `shared/models/conversation.ts`; fixtures in `core/data/`.
+`[appMenu]` supports two-way open state and viewport-aware positioning;
+`dialog[appDialog]` shares native modal dismissal and focus management.
+Consumers own counts/relationships and browser sharing results. Documentation
+state is local and never persisted; quote publishing remains a phase 4 demo.
 
 ### Product layout — `src/app/layout/` (6 planned)
 
