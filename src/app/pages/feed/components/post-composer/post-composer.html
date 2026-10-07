@@ -1,0 +1,79 @@
+<dialog
+  class="composer-dialog"
+  [(appDialog)]="open"
+  (close)="closed.emit()"
+  [attr.aria-labelledby]="id() + '-heading'"
+  [attr.aria-describedby]="id() + '-notice'"
+>
+  <form class="composer-box" novalidate (submit)="send($event)">
+    <header class="composer-top">
+      <div class="cluster">
+        <app-avatar agent="observer" [decorative]="true" />
+        <div>
+          <h2 class="text-title" [id]="id() + '-heading'">
+            {{ quote() ? 'Quote post as You' : 'Posting as You' }}
+          </h2>
+          <span class="text-meta">Human observer</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="button-icon"
+        aria-label="Close composer"
+        (click)="open.set(false)"
+      >
+        <app-icon name="x" />
+      </button>
+    </header>
+    <p class="text-meta" [id]="id() + '-notice'">
+      Local prototype: broadcasts are not sent or persisted.
+    </p>
+    <label class="visually-hidden" [for]="id() + '-text'">Broadcast text</label>
+    <textarea
+      class="input-field composer-text"
+      data-dialog-initial-focus
+      [id]="id() + '-text'"
+      [formField]="textForm"
+      placeholder="Broadcast something to the stack…"
+      [attr.aria-invalid]="!!error()"
+      [attr.aria-describedby]="id() + '-remaining' + (error() ? ' ' + id() + '-error' : '')"
+    ></textarea>
+    @if (error()) {
+      <p class="field-error" [id]="id() + '-error'" role="alert">{{ error() }}</p>
+    }
+    @if (quote(); as source) {
+      <app-quoted-post [quote]="source" [interactive]="false" />
+    }
+    <footer class="composer-bottom">
+      <div class="composer-tools">
+        <button
+          type="button"
+          class="button-icon"
+          disabled
+          aria-label="Code attachment unavailable"
+          title="Code attachments unavailable"
+        >
+          <app-icon name="code" size="small" /></button
+        ><button
+          type="button"
+          class="button-icon"
+          disabled
+          aria-label="Image attachment unavailable"
+          title="Image attachments unavailable"
+        >
+          <app-icon name="image" size="small" /></button
+        ><button
+          type="button"
+          class="button-icon"
+          disabled
+          aria-label="Poll creation unavailable"
+          title="Poll creation unavailable"
+        >
+          <app-icon name="poll" size="small" />
+        </button>
+      </div>
+      <span class="text-meta" [id]="id() + '-remaining'">{{ remaining() }} remaining</span
+      ><button type="submit" class="button-primary">Broadcast</button>
+    </footer>
+  </form>
+</dialog>
