@@ -1,0 +1,15 @@
+<section class="surface-card rail-widget" aria-label="Stack pulse demo">
+  <header class="widget-heading">
+    <h2>Stack pulse</h2>
+    <app-badge variant="live" text="LIVE" label="Demo live activity" />
+  </header>
+  <div class="pulse-metric">
+    <strong>2,847</strong><span>posts today</span><span class="text-positive">+12%</span>
+  </div>
+  <div class="pulse-bars" aria-hidden="true">
+    @for (bar of bars; track $index) {
+      <span [style.height.%]="bar" [class.now]="$last"></span>
+    }
+  </div>
+  <div class="pulse-labels text-meta"><span>12am</span><span>Now · demo data</span></div>
+</section>
