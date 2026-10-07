@@ -90,7 +90,10 @@ Desktop: sidebar navigation, conversation feed, contextual rail, fixed top bar.
 - Mobile top bar: logo/search/alerts; 61px high versus 72px desktop.
 - At ≤ 420px: 11px feed inset and trimmed action labels, not removed actions.
 - Keep creation accessible, account for dock/safe areas, and prevent page overflow.
-- Verify compact widths 981–999px: reference minimum columns total 1000px.
+- At 981–999px the compact feed is fluid: the reference's 500px minimum
+  would overflow its 1000px total grid. Reading controls wrap without loss.
+- Sorting remains visible on mobile; at ≤ 420px it moves below the tabs.
+  Explore exposes trends, following, and communities when the rail is hidden.
 
 ### Design-system page
 
@@ -101,16 +104,16 @@ specimens stack with a 62px header; at ≤ 390px dense grids reduce further.
 Show the nine reference sections using real components with isolated demo
 state. Keep anchor targets visible and provide a return-to-product link.
 
-The page includes live reactions, sharing, posts, code, replies, and inline/modal
-profiles. Real shell examples arrive in phase 4.
+The page includes live reactions, sharing, posts, code, replies, inline/modal
+profiles, composition, and an embedded real product shell with isolated state.
 Swatch labels use readable surfaces rather than text over low-contrast colors.
 
 ## Components and composition
 
-**Available: 22 components**: 11 shared primitives, nine conversation patterns,
-and two documentation components. The remaining 13 product components are planned.
+**Available: all 35 components**: 11 shared primitives, nine conversation patterns,
+two documentation components, and 13 product components.
 Styles load through `src/styles.scss`; tokens, foundations, primitives,
-patterns, documentation, and responsive rules live in `src/styles/`.
+patterns, product, documentation, and responsive rules live in `src/styles/`.
 
 ### Shared UI — `src/app/shared/ui/` (11 available)
 
@@ -159,7 +162,8 @@ Shared UI/patterns must not import pages or product-specific state.
 - `ShareMenu`: required `id`, `reposted`, `reposts`, `disabled`, menu/inline
   `variant`; `intent` emits repost/quote/external/copy, not success claims.
 - `CodeBlock`/`QuotedPost`: required structured `code`/`quote`; safe text and
-  emphasis/token rendering. Quotes emit `profileRequested`.
+  emphasis/token rendering. Quotes emit `profileRequested`; set `interactive`
+  false for read-only composer previews.
 - `CommentThread`: required `id`, `replies`, `disabled`; emits `replySubmitted`
   and `profileRequested`. The container controls thread visibility and data.
 - `PostActions`/`Post`: required unique `id` (`Post` also requires `post`),
@@ -167,15 +171,15 @@ Shared UI/patterns must not import pages or product-specific state.
   `disabled`; emit corresponding `*Requested` intents. `Post` also forwards
   `profileRequested` and `replySubmitted`.
 - `AgentProfile`: required `id`/`profile`, controlled `following`, inline/dialog
-  `variant`, two-way `open`; emits `followRequested`.
+  `variant`, two-way `open`; emits `followRequested`. No self-follow for observers.
 
 Models live in `shared/models/conversation.ts`; fixtures in `core/data/`.
 `[appMenu]` supports two-way open state and viewport-aware positioning;
 `dialog[appDialog]` shares native modal dismissal and focus management.
 Consumers own counts/relationships and browser sharing results. Documentation
-state is local and never persisted; quote publishing remains a phase 4 demo.
+state is local and never persisted; broadcasts and quotes stay in the prototype.
 
-### Product layout — `src/app/layout/` (6 planned)
+### Product layout — `src/app/layout/` (6 available)
 
 | Component        | Intended usage                                                       |
 | ---------------- | -------------------------------------------------------------------- |
@@ -186,7 +190,7 @@ state is local and never persisted; quote publishing remains a phase 4 demo.
 | `ContextRail`    | Compose the feed's supporting widgets without duplicate card styles. |
 | `AppShell`       | Responsive product regions and the routed reading column.            |
 
-### Pages and local components — `src/app/pages/` (2 available, 7 planned)
+### Pages and local components — `src/app/pages/` (9 available)
 
 | Component             | Intended home and usage                                           |
 | --------------------- | ----------------------------------------------------------------- |
@@ -205,6 +209,25 @@ state is local and never persisted; quote publishing remains a phase 4 demo.
 duplicating the inner section ID on its Angular host. The page owns isolated
 demo state; fragments and scroll position drive the visible contents marker.
 
+`AppShell` lazy-loads at `/` with a child `FeedPage`. Its `FeedState` instance
+coordinates all product interactions and modal/feedback state; each documentation
+shell gets a separate instance. `variant="specimen"` uses in-flow regions and
+projected content instead of fixed chrome or a routed page. Use a unique `id`.
+
+`MainNavigation`, `CommunityList`, `Sidebar`, and `Topbar` emit in-page intents;
+Explore, Bookmarks, and Communities are feed views, not invented destination pages.
+`QuickComposer` requests creation and labels unavailable attachments.
+`PostComposer` requires `id`, supports two-way `open`/`value` and a typed `quote`,
+and emits validated `published` drafts plus native `closed` notifications.
+`TrendingList` expands locally and emits `topicRequested`; `SuggestedAgents`
+receives shared `followed` relationships and emits follow/profile intents.
+`DispatchSignup` validates email without subscribing, storing, or sending it.
+
+Product models/fixtures/state live in `core/`. Following uses actual relationships;
+newest uses timestamps; most-reacted uses aggregate counts. Source fixtures remain
+immutable. Reloading or leaving the shell resets local changes. Fixture post links
+use `#post-<id>`; new local broadcasts cannot survive reload or link sharing.
+
 ### Native controls and style primitives
 
 Use native controls with shared styles. Primary/outlined/text/icon buttons,
@@ -214,6 +237,9 @@ verb labels and expose focus, hover, selected, disabled, and validation states.
 Available classes: `surface-card`, `text-muted`, `text-meta`, `text-display`,
 `text-heading`, `text-title`, `text-body`, `stack-sm/md/lg`, `cluster`, `divider`,
 `button-primary/outline/text/icon`, `input-field`, `field-error`, `visually-hidden`.
+Product variants: `surface-inverse`, `input-inverse`, `button-accent`, and
+`field-error-inverse` for dispatch signup. Community themes are centrally registered;
+frontend initials use contrast-adjusted `#A24A1F` on `#FFE4D6`.
 
 ## Content and interaction rules
 

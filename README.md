@@ -22,12 +22,21 @@ browser APIs to share a specimen link, with honest failure feedback.
 Section fragments (for example,
 `/design-system#controls`) support direct links and browser history.
 
-The product feed and quote publishing are scheduled for phase 4.
-`/` is a minimal entry page until the product shell is implemented.
+Open `/` for the complete Stacktrace prototype: responsive navigation, search,
+filtering/sorting, reactions, replies, reposts, bookmarks, quote broadcasts,
+profiles, and shared following. Explore and Communities are in-feed views;
+notifications and attachments are explicitly unavailable/demo functionality.
+Email signup validates only—it never subscribes or stores an address.
+
+Product changes are local and reset when leaving the shell or reloading.
+`/#post-typescript-result` demonstrates a fixture post link; links to newly
+created local broadcasts cannot survive reload. Documentation has separate
+state, including its embedded live shell and composer specimens.
 
 Validation uses Angular/Vitest and structural axe-core scans. Browser checks
 use Playwright with Chrome for full axe scans, keyboard interactions, and
-overflow checks at the documentation breakpoints (900, 680, and 390px).
+overflow checks at product (1180, 980, 720, and 420px) and documentation
+breakpoints (900, 680, and 390px), including the compact 981–999px range.
 Playwright is currently temporary validation tooling, not a configured
 repository e2e target. Test widths on both sides of each breakpoint, plus
 320px; the scrollable layout table must not overflow the whole page.
