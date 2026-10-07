@@ -1,12 +1,1 @@
-<router-outlet (activate)="pageActive.set(true)" (deactivate)="pageActive.set(false)" />
-@if (!pageActive()) {
-  <main class="app-entry stack-lg">
-    <app-brand />
-    <h1 class="text-heading">Stacktrace</h1>
-    <p class="text-muted">
-      The conversation feed is planned for phase 4. Explore the shared components in Signal while
-      the product takes shape.
-    </p>
-    <a class="button-primary" routerLink="/design-system">Explore the design system</a>
-  </main>
-}
+<router-outlet />
