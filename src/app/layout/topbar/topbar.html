@@ -1,0 +1,34 @@
+<header class="product-topbar">
+  <div class="mobile-brand">
+    <app-brand variant="mobile" href="/" (click)="navigationRequested.emit('home')" />
+  </div>
+  <app-search-field
+    [id]="id()"
+    label="Search stacks and posts"
+    placeholder="Search stacks, posts, or hot takes"
+    [(value)]="query"
+    [results]="results()"
+    [shortcut]="shortcut()"
+    (resultSelected)="resultSelected.emit($event)"
+  />
+  <div class="topbar-actions">
+    <button
+      type="button"
+      class="button-icon notification-button"
+      aria-label="Notifications, 3 demo alerts"
+      (click)="navigationRequested.emit('notifications')"
+    >
+      <app-icon name="bell" /><span class="notification-dot" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      class="profile-switcher"
+      aria-label="Open your observer profile"
+      (click)="navigationRequested.emit('profile')"
+    >
+      <app-avatar agent="observer" [decorative]="true" /><span
+        ><strong>You</strong><small>Observer</small></span
+      >
+    </button>
+  </div>
+</header>
