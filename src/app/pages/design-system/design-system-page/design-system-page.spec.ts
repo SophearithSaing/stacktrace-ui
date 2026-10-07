@@ -81,7 +81,7 @@ describe('DesignSystemPage', (): void => {
     expect(host.querySelectorAll('.ds-avatar-row app-avatar')).toHaveLength(8);
     expect(host.querySelector('app-post')).not.toBeNull();
     expect(host.querySelector('app-agent-profile')).not.toBeNull();
-    expect(host.textContent).toContain('Real shell specimens arrive in phase 4');
+    expect(host.querySelector('.shell-specimen')).not.toBeNull();
   });
 
   it('synchronizes both follow specimens without changing product state', (): void => {
@@ -96,7 +96,7 @@ describe('DesignSystemPage', (): void => {
     fixture.detectChanges();
     expect(buttons[0].getAttribute('aria-pressed')).toBe('false');
     expect(buttons[1].getAttribute('aria-pressed')).toBe('false');
-    expect(element(fixture, '.toast').textContent).toContain('Demo: unfollowed');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('Demo: unfollowed');
   });
 
   it('shares reaction add/change/remove state and totals across live specimens', async (): Promise<void> => {
@@ -164,7 +164,7 @@ describe('DesignSystemPage', (): void => {
     buttons[1].click();
     fixture.detectChanges();
     expect(element(fixture, '#reactions app-quoted-post').textContent).toContain('three sprints');
-    expect(element(fixture, '.toast').textContent).toContain('Publishing arrives in phase 4');
+    expect(element(fixture, '#docs-composer-heading').textContent).toContain('Quote post as You');
   });
 
   it('reports clipboard success only after completion and handles failures', async (): Promise<void> => {
@@ -177,12 +177,12 @@ describe('DesignSystemPage', (): void => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('/design-system#content'));
-    expect(element(fixture, '.toast').textContent).toContain('link copied');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('link copied');
     writeText.mockRejectedValue(new Error('Denied'));
     buttons[3].click();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(element(fixture, '.toast').textContent).toContain('cancelled or failed');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('cancelled or failed');
   });
 
   it('handles unavailable, successful, and cancelled native sharing', async (): Promise<void> => {
@@ -192,18 +192,18 @@ describe('DesignSystemPage', (): void => {
     );
     buttons[2].click();
     fixture.detectChanges();
-    expect(element(fixture, '.toast').textContent).toContain('Try Copy link');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('Try Copy link');
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'share', { configurable: true, value: share });
     buttons[2].click();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(element(fixture, '.toast').textContent).toContain('Specimen link shared');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('Specimen link shared');
     share.mockRejectedValue(new DOMException('Cancelled', 'AbortError'));
     buttons[2].click();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(element(fixture, '.toast').textContent).toContain('cancelled or failed');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('cancelled or failed');
   });
 
   it('filters real search results and exposes empty results', (): void => {
@@ -216,7 +216,7 @@ describe('DesignSystemPage', (): void => {
     press(input, 'ArrowDown');
     press(input, 'Enter');
     fixture.detectChanges();
-    expect(element(fixture, '.toast').textContent).toContain('Demo search: Angular');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain('Demo search: Angular');
     type(input, 'not-an-agent');
     fixture.detectChanges();
     expect(element(fixture, '.search-results').textContent).toContain('No stack chatter found.');
@@ -232,7 +232,9 @@ describe('DesignSystemPage', (): void => {
     form.dispatchEvent(new Event('submit', { cancelable: true }));
     fixture.detectChanges();
     expect(element<HTMLInputElement>(fixture, '#docs-reply').value).toBe('');
-    expect(element(fixture, '.toast').textContent).toContain('Nothing was published');
+    expect(element(fixture, '.docs-feedback .toast').textContent).toContain(
+      'Nothing was published',
+    );
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Demo reply: <b>Hello</b>',
     );
@@ -251,6 +253,25 @@ describe('DesignSystemPage', (): void => {
     element<HTMLButtonElement>(fixture, '[role="tabpanel"] button').click();
     fixture.detectChanges();
     expect(element(fixture, '#docs-tabs-tab-you').getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('receives a safe documentation broadcast without altering shell specimens', (): void => {
+    const originalPost = element(fixture, '.shell-specimen app-post .post-copy').textContent;
+    element<HTMLButtonElement>(fixture, '#reactions .quick-entry').click();
+    fixture.detectChanges();
+    const text = element<HTMLTextAreaElement>(fixture, '#docs-composer-text');
+    text.value = '<b>Documentation only</b>';
+    text.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    element(fixture, 'app-post-composer[id="docs-composer"] form').dispatchEvent(
+      new Event('submit', { cancelable: true }),
+    );
+    fixture.detectChanges();
+    expect(element(fixture, '#reactions [role="status"]').textContent).toContain(
+      '<b>Documentation only</b>',
+    );
+    expect(element(fixture, '#reactions [role="status"]').querySelector('b')).toBeNull();
+    expect(element(fixture, '.shell-specimen app-post .post-copy').textContent).toBe(originalPost);
   });
 
   it('restores fragment targets, focus, and active navigation', async (): Promise<void> => {

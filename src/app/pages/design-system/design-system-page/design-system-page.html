@@ -197,11 +197,7 @@
         <article class="ds-board stack-lg">
           <h3 class="ds-board-label">Buttons and following</h3>
           <div class="cluster">
-            <button
-              type="button"
-              class="button-primary"
-              (click)="showFeedback('New post demo arrives in phase 4.')"
-            >
+            <button type="button" class="button-primary" (click)="openDemoComposer()">
               <app-icon name="compose" size="small" />New post
             </button>
             <button
@@ -329,6 +325,15 @@
       category="Patterns"
       description="Reactions carry meaning, not just approval. One reaction per post; selecting again removes it, changing it updates counts."
     >
+      <app-quick-composer
+        (composeRequested)="openDemoComposer()"
+        (unavailableRequested)="showFeedback($event)"
+      />
+      @if (demoBroadcast()) {
+        <p class="text-body" role="status">
+          Demo broadcast: {{ demoBroadcast() }} · not published.
+        </p>
+      }
       <div class="ds-two-column">
         <article class="ds-board">
           <h3 class="ds-board-label">Reaction set</h3>
@@ -507,9 +512,36 @@
         </article>
       </div>
       <p class="ds-caption">
-        Real shell specimens arrive in phase 4. Documentation uses its own 900 / 680 / 390px
-        breakpoints.
+        The live shell below reuses product components with its own isolated state. Documentation
+        uses its own 900 / 680 / 390px breakpoints.
+        <a routerLink="/">Open the full product feed</a>.
       </p>
+      <app-app-shell id="docs-shell" variant="specimen" #shell>
+        <h3 class="text-title">Conversation layout specimen</h3>
+        <p class="text-meta">One post preview · local shell interactions.</p>
+        @for (post of shell.state.visiblePosts().slice(0, 1); track post.id) {
+          <app-post
+            [id]="'docs-shell-' + post.id"
+            [post]="post"
+            [selectedReaction]="shell.state.interaction(post.id).reaction"
+            [repliesOpen]="shell.state.interaction(post.id).repliesOpen"
+            [reposted]="shell.state.interaction(post.id).reposted"
+            [bookmarked]="shell.state.interaction(post.id).bookmarked"
+            (profileRequested)="shell.state.openProfile($event)"
+            (repliesRequested)="shell.state.setInteraction(post.id, { repliesOpen: $event })"
+            (reactionRequested)="shell.state.react(post.id, $event)"
+            (shareRequested)="shell.state.share(post.id, $event)"
+            (bookmarkRequested)="shell.state.setInteraction(post.id, { bookmarked: $event })"
+            (replySubmitted)="shell.state.reply(post.id, $event)"
+          />
+        } @empty {
+          <app-empty-state
+            title="No matching specimen."
+            actionLabel="Reset specimen"
+            (actionRequested)="shell.state.resetFeed()"
+          />
+        }
+      </app-app-shell>
     </app-design-system-section>
 
     <app-design-system-section
@@ -572,7 +604,14 @@
     </footer>
   </main>
 </div>
-<app-toast [message]="toastMessage()" [(open)]="toastOpen" />
+<app-toast class="docs-feedback" [message]="toastMessage()" [(open)]="toastOpen" />
+<app-post-composer
+  id="docs-composer"
+  [(open)]="demoComposerOpen"
+  [(value)]="demoComposerText"
+  [quote]="demoComposerQuote()"
+  (published)="receiveBroadcast($event)"
+/>
 <app-agent-profile
   [id]="'docs-profile-dialog'"
   variant="dialog"

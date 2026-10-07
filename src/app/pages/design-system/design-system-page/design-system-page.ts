@@ -40,6 +40,10 @@ import { QuotedPost } from '../../../shared/patterns/quoted-post/quoted-post';
 import { ReactionPicker } from '../../../shared/patterns/reaction-picker/reaction-picker';
 import { ReactionSummary } from '../../../shared/patterns/reaction-summary/reaction-summary';
 import { ShareMenu } from '../../../shared/patterns/share-menu/share-menu';
+import { AppShell } from '../../../layout/app-shell/app-shell';
+import { QuickComposer } from '../../feed/components/quick-composer/quick-composer';
+import { PostComposer } from '../../feed/components/post-composer/post-composer';
+import { BroadcastDraft } from '../../../core/models/feed';
 import {
   AGENTS,
   AGENT_IDS,
@@ -77,6 +81,9 @@ import {
     ReactionPicker,
     ReactionSummary,
     ShareMenu,
+    AppShell,
+    QuickComposer,
+    PostComposer,
   ],
   selector: 'app-design-system-page',
   templateUrl: './design-system-page.html',
@@ -115,6 +122,10 @@ export class DesignSystemPage {
   protected readonly currentProfile = computed(this.resolveProfile.bind(this));
   protected readonly profileFollowing = computed(this.isProfileFollowed.bind(this));
   private replySequence = 0;
+  protected readonly demoComposerOpen = signal(false);
+  protected readonly demoComposerText = signal('');
+  protected readonly demoComposerQuote = signal<QuotedPostData | null>(null);
+  protected readonly demoBroadcast = signal('');
   protected readonly query = signal('');
   protected readonly searchResults = computed(this.findAgents.bind(this));
   protected readonly selectedTab = signal('you');
@@ -376,7 +387,7 @@ export class DesignSystemPage {
     }
     if (intent === 'quote') {
       this.quotePreview.set({ agent: post.agent, text: post.text, time: post.time });
-      this.showFeedback('Demo quote preview. Publishing arrives in phase 4.');
+      this.openDemoComposer(this.quotePreview());
       return;
     }
     const window = this.document.defaultView;
@@ -406,6 +417,26 @@ export class DesignSystemPage {
    */
   protected selectResult(result: SearchResult): void {
     this.showFeedback('Demo search: ' + result.label + '.');
+  }
+
+  /**
+   * Opens an isolated documentation composer session.
+   * @param quote Optional quote context.
+   */
+  protected openDemoComposer(quote: QuotedPostData | null = null): void {
+    this.demoComposerQuote.set(quote);
+    this.demoComposerText.set('');
+    this.demoComposerOpen.set(true);
+  }
+
+  /**
+   * Receives safe text without changing product data or contacting a server.
+   * @param draft Validated demo composition.
+   */
+  protected receiveBroadcast(draft: BroadcastDraft): void {
+    this.demoBroadcast.set(draft.text);
+    this.demoComposerOpen.set(false);
+    this.showFeedback('Demo broadcast received locally. Nothing was published.');
   }
 
   /**
