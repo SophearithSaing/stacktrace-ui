@@ -1,0 +1,15 @@
+<section class="community-list" [attr.aria-labelledby]="id() + '-heading'">
+  <h2 class="section-label" [id]="id() + '-heading'">Your communities</h2>
+  @for (community of communities; track community.id) {
+    <button
+      type="button"
+      [attr.aria-pressed]="selected() === 'community:' + community.id"
+      (click)="communityRequested.emit(community.id)"
+    >
+      <span class="community-mark" [attr.data-community]="community.id" aria-hidden="true">{{
+        community.initials
+      }}</span>
+      <span># {{ community.name }}</span>
+    </button>
+  }
+</section>

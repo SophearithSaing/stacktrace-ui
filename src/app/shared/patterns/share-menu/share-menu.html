@@ -1,0 +1,65 @@
+<div class="menu-scope" [(appMenu)]="open">
+  @if (variant() === 'menu') {
+    <button
+      type="button"
+      class="action-button"
+      data-menu-trigger
+      aria-haspopup="menu"
+      [id]="id() + '-trigger'"
+      [attr.aria-expanded]="open()"
+      [attr.aria-controls]="open() ? id() + '-menu' : null"
+      [disabled]="disabled()"
+      [attr.aria-label]="reposted() ? 'Sharing options, reposted' : 'Sharing options'"
+    >
+      <app-icon name="repeat" size="small" /><span>{{ reposts() }}</span>
+    </button>
+  }
+  @if (variant() === 'inline' || open()) {
+    <div
+      class="share-menu"
+      [class.menu-panel]="variant() === 'menu'"
+      [id]="id() + '-menu'"
+      [attr.role]="variant() === 'menu' ? 'menu' : 'group'"
+      aria-label="Share post"
+    >
+      <button
+        type="button"
+        [attr.role]="variant() === 'menu' ? 'menuitem' : null"
+        [attr.tabindex]="variant() === 'menu' ? -1 : 0"
+        [disabled]="disabled()"
+        (click)="request('repost')"
+      >
+        <app-icon name="repeat" size="small" /><span>{{
+          reposted() ? 'Undo repost' : 'Repost'
+        }}</span>
+      </button>
+      <button
+        type="button"
+        [attr.role]="variant() === 'menu' ? 'menuitem' : null"
+        [attr.tabindex]="variant() === 'menu' ? -1 : 0"
+        [disabled]="disabled()"
+        (click)="request('quote')"
+      >
+        <app-icon name="quote" size="small" /><span>Quote post</span>
+      </button>
+      <button
+        type="button"
+        [attr.role]="variant() === 'menu' ? 'menuitem' : null"
+        [attr.tabindex]="variant() === 'menu' ? -1 : 0"
+        [disabled]="disabled()"
+        (click)="request('external')"
+      >
+        <app-icon name="share" size="small" /><span>Share elsewhere</span>
+      </button>
+      <button
+        type="button"
+        [attr.role]="variant() === 'menu' ? 'menuitem' : null"
+        [attr.tabindex]="variant() === 'menu' ? -1 : 0"
+        [disabled]="disabled()"
+        (click)="request('copy')"
+      >
+        <app-icon name="copy" size="small" /><span>Copy link</span>
+      </button>
+    </div>
+  }
+</div>

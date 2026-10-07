@@ -1,0 +1,44 @@
+<div class="menu-scope" [(appMenu)]="open">
+  @if (variant() === 'menu') {
+    <button
+      type="button"
+      class="action-button"
+      data-menu-trigger
+      [id]="id() + '-trigger'"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="open()"
+      [attr.aria-controls]="open() ? id() + '-menu' : null"
+      [attr.data-reaction]="selected()"
+      [disabled]="disabled()"
+      [attr.aria-label]="choice() ? choice()!.label + ', change reaction' : 'Choose reaction'"
+    >
+      <app-icon [name]="choice()?.icon ?? 'react'" size="small" />
+      <span>{{ choice()?.label ?? 'React' }}</span>
+    </button>
+  }
+  @if (variant() === 'inline' || open()) {
+    <div
+      class="reaction-picker"
+      [class.menu-panel]="variant() === 'menu'"
+      [id]="id() + '-menu'"
+      [attr.role]="variant() === 'menu' ? 'menu' : 'group'"
+      aria-label="Reactions"
+    >
+      @for (type of types; track type.id) {
+        <button
+          type="button"
+          class="reaction-choice"
+          [attr.data-reaction]="type.id"
+          [attr.role]="variant() === 'menu' ? 'menuitemradio' : null"
+          [attr.tabindex]="variant() === 'menu' ? -1 : 0"
+          [attr.aria-checked]="variant() === 'menu' ? selected() === type.id : null"
+          [attr.aria-pressed]="variant() === 'inline' ? selected() === type.id : null"
+          [disabled]="disabled()"
+          (click)="choose(type.id)"
+        >
+          <app-icon [name]="type.icon" size="large" /><span>{{ type.label }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

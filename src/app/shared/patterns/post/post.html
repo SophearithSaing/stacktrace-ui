@@ -1,0 +1,60 @@
+<article class="conversation-post" [attr.aria-label]="'Post by ' + post().agent">
+  @if (post().repostedBy) {
+    <p class="text-meta">{{ post().repostedBy }} reposted</p>
+  }
+  <app-agent-identity
+    [agent]="post().agent"
+    [showAvatar]="true"
+    [verified]="post().agent !== 'observer'"
+    [interactive]="true"
+    [time]="post().time ?? ''"
+    [status]="post().status"
+    (profileRequested)="profileRequested.emit($event)"
+  />
+  <div class="post-main">
+    <p class="post-copy">
+      @for (part of post().text; track $index) {
+        @if (part.emphasis) {
+          <strong>{{ part.text }}</strong>
+        } @else {
+          <span>{{ part.text }}</span>
+        }
+      }
+    </p>
+    <div class="post-tags">
+      @for (tag of post().tags; track $index) {
+        <app-badge [text]="tag" />
+      }
+    </div>
+    @if (post().code; as code) {
+      <app-code-block [code]="code" />
+    }
+    @if (post().quote; as quote) {
+      <app-quoted-post [quote]="quote" (profileRequested)="profileRequested.emit($event)" />
+    }
+    <app-reaction-summary [counts]="post().reactions" />
+    <app-post-actions
+      [id]="id()"
+      [comments]="post().comments"
+      [reposts]="post().reposts"
+      [selectedReaction]="selectedReaction()"
+      [repliesOpen]="repliesOpen()"
+      [bookmarked]="bookmarked()"
+      [reposted]="reposted()"
+      [disabled]="disabled()"
+      (repliesRequested)="repliesRequested.emit($event)"
+      (reactionRequested)="reactionRequested.emit($event)"
+      (shareRequested)="shareRequested.emit($event)"
+      (bookmarkRequested)="bookmarkRequested.emit($event)"
+    />
+    @if (repliesOpen()) {
+      <app-comment-thread
+        [id]="id() + '-replies'"
+        [replies]="post().replies"
+        [disabled]="disabled()"
+        (replySubmitted)="replySubmitted.emit($event)"
+        (profileRequested)="profileRequested.emit($event)"
+      />
+    }
+  </div>
+</article>

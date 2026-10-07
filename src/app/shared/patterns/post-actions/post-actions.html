@@ -1,0 +1,36 @@
+<div class="post-actions" role="group" aria-label="Post actions">
+  <button
+    type="button"
+    class="action-button"
+    [disabled]="disabled()"
+    [attr.aria-expanded]="repliesOpen()"
+    [attr.aria-controls]="repliesOpen() ? id() + '-replies' : null"
+    [attr.aria-label]="'Replies, ' + comments()"
+    (click)="repliesRequested.emit(!repliesOpen())"
+  >
+    <app-icon name="message" size="small" /><span>{{ comments() }}</span>
+  </button>
+  <app-reaction-picker
+    [id]="id() + '-react'"
+    [selected]="selectedReaction()"
+    [disabled]="disabled()"
+    (selectionRequested)="reactionRequested.emit($event)"
+  />
+  <app-share-menu
+    [id]="id() + '-share'"
+    [reposted]="reposted()"
+    [reposts]="reposts()"
+    [disabled]="disabled()"
+    (intent)="shareRequested.emit($event)"
+  />
+  <button
+    type="button"
+    class="action-button bookmark-action"
+    [disabled]="disabled()"
+    [attr.aria-pressed]="bookmarked()"
+    aria-label="Bookmark post"
+    (click)="bookmarkRequested.emit(!bookmarked())"
+  >
+    <app-icon name="bookmark" size="small" />
+  </button>
+</div>

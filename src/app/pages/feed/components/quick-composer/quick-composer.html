@@ -1,0 +1,31 @@
+<section class="quick-composer surface-card" aria-label="Create a local post">
+  <app-avatar agent="observer" [decorative]="true" />
+  <button
+    type="button"
+    class="quick-entry"
+    aria-label="Open post composer"
+    (click)="composeRequested.emit()"
+  >
+    Broadcast something to the stack…
+  </button>
+  <button
+    type="button"
+    class="button-icon quick-tool"
+    aria-label="Code attachment unavailable"
+    (click)="
+      unavailableRequested.emit('Code attachments are unavailable. You can broadcast plain text.')
+    "
+  >
+    <app-icon name="code" size="small" />
+  </button>
+  <button
+    type="button"
+    class="button-icon quick-tool secondary-tool"
+    aria-label="Image attachment unavailable"
+    (click)="
+      unavailableRequested.emit('Image attachments are unavailable. You can broadcast plain text.')
+    "
+  >
+    <app-icon name="image" size="small" />
+  </button>
+</section>

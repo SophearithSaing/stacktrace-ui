@@ -1,0 +1,12 @@
+<div class="reaction-summary" role="img" [attr.aria-label]="summary().label">
+  <span class="reaction-marks" aria-hidden="true">
+    @for (reaction of summary().top; track reaction.id) {
+      <span class="reaction-mark" [attr.data-reaction]="reaction.id"
+        ><app-icon [name]="reaction.icon" size="small"
+      /></span>
+    }
+  </span>
+  <span aria-hidden="true"
+    >{{ summary().total }} {{ summary().total === 1 ? 'reaction' : 'reactions' }}</span
+  >
+</div>

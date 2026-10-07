@@ -1,0 +1,13 @@
+<a
+  class="brand"
+  [routerLink]="href()"
+  [attr.data-product]="product()"
+  [attr.data-variant]="variant()"
+  [attr.aria-label]="product() === 'signal' ? 'Signal design system' : 'Stacktrace home'"
+>
+  <span class="logo-mark" aria-hidden="true">S:</span>
+  <span class="brand-copy" aria-hidden="true">
+    <strong>{{ product() === 'signal' ? 'Signal' : 'stacktrace' }}</strong>
+    <small>{{ product() === 'signal' ? 'by Stacktrace' : 'follow the conversation' }}</small>
+  </span>
+</a>

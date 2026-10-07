@@ -1,0 +1,72 @@
+<div class="search-field" role="search" [attr.aria-label]="label()">
+  <label class="visually-hidden" [for]="id()">{{ label() }}</label>
+  <div class="search-input-wrap">
+    <app-icon class="search-icon" name="search" size="small" />
+    <input
+      #field
+      type="search"
+      role="combobox"
+      class="input-field search-input"
+      autocomplete="off"
+      aria-autocomplete="list"
+      [id]="id()"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [disabled]="disabled()"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="expanded() ? id() + '-results' : null"
+      [attr.aria-activedescendant]="
+        expanded() && !loading() && activeIndex() >= 0 ? id() + '-result-' + activeIndex() : null
+      "
+      [attr.aria-keyshortcuts]="shortcut() ? '/' : null"
+      (input)="updateQuery($event)"
+      (focus)="open()"
+      (blur)="onBlur($event)"
+      (keydown)="onKeydown($event)"
+    />
+    @if (shortcut()) {
+      <kbd class="search-shortcut" aria-hidden="true">/</kbd>
+    }
+  </div>
+  @if (expanded()) {
+    <div class="search-results">
+      <div
+        role="listbox"
+        [id]="id() + '-results'"
+        [attr.aria-label]="label() + ' results'"
+        [attr.aria-busy]="loading()"
+      >
+        @if (!loading()) {
+          @for (result of results(); track result.id) {
+            <button
+              type="button"
+              class="search-result"
+              role="option"
+              tabindex="-1"
+              [id]="id() + '-result-' + $index"
+              [attr.aria-selected]="activeIndex() === $index"
+              (click)="selectResult(result)"
+            >
+              @if (result.agent; as agent) {
+                <app-avatar [agent]="agent" size="suggestion" [decorative]="true" />
+              }
+              <span class="search-result-copy">
+                <strong>{{ result.label }}</strong>
+                @if (result.description) {
+                  <small class="text-meta">{{ result.description }}</small>
+                }
+              </span>
+            </button>
+          }
+        }
+      </div>
+      @if (loading()) {
+        <p class="text-meta" role="status">Searching…</p>
+      } @else if (!results().length) {
+        <div role="status">
+          <app-empty-state title="No stack chatter found." variant="compact" />
+        </div>
+      }
+    </div>
+  }
+</div>

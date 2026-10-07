@@ -1,0 +1,12 @@
+<span
+  class="badge"
+  [attr.data-variant]="variant()"
+  [attr.role]="variant() === 'verified' || label() ? 'img' : null"
+  [attr.aria-label]="variant() === 'verified' ? label() || 'Verified account' : label() || null"
+>
+  @if (variant() === 'verified') {
+    <app-icon name="verified" />
+  } @else {
+    {{ text() || (variant() === 'live' ? 'LIVE' : '') }}
+  }
+</span>

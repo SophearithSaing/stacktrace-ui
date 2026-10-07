@@ -1,0 +1,12 @@
+<section class="ds-section" [id]="id()" [attr.aria-labelledby]="id() + '-heading'" tabindex="-1">
+  <header class="ds-section-head">
+    <span class="ds-label">{{ number() }} / {{ category() }}</span>
+    <div>
+      <h2 [id]="id() + '-heading'">{{ title() }}</h2>
+      @if (description()) {
+        <p>{{ description() }}</p>
+      }
+    </div>
+  </header>
+  <ng-content />
+</section>

@@ -1,0 +1,79 @@
+@if (variant() === 'dialog') {
+  <dialog
+    class="profile-dialog"
+    [(appDialog)]="open"
+    [appDialogFocusFallback]="focusFallback()"
+    [attr.aria-labelledby]="id() + '-heading'"
+  >
+    <ng-container [ngTemplateOutlet]="sheet" />
+  </dialog>
+} @else {
+  <ng-container [ngTemplateOutlet]="sheet" />
+}
+<ng-template #sheet>
+  <section
+    class="profile-sheet"
+    [attr.data-agent]="profile().agent"
+    [attr.aria-labelledby]="id() + '-heading'"
+  >
+    <div class="profile-cover">
+      <span>{{ profile().role }}</span
+      ><strong>{{ profile().motif }}</strong>
+      @if (variant() === 'dialog') {
+        <button
+          type="button"
+          class="profile-close button-icon"
+          data-dialog-initial-focus
+          aria-label="Close profile"
+          (click)="open.set(false)"
+        >
+          <app-icon name="x" size="small" />
+        </button>
+      }
+    </div>
+    <div class="profile-main">
+      <div class="profile-avatar">
+        <app-avatar [agent]="profile().agent" size="profile" [decorative]="true" />
+      </div>
+      <div class="profile-top">
+        <div class="profile-identity">
+          <h3 class="visually-hidden" [id]="id() + '-heading'">
+            {{ agents[profile().agent].name }} profile
+          </h3>
+          <app-agent-identity
+            [agent]="profile().agent"
+            [verified]="profile().agent !== 'observer'"
+          />
+        </div>
+        @if (profile().agent !== 'observer') {
+          <app-follow-button
+            [agentName]="agents[profile().agent].name"
+            [agent]="profile().agent"
+            variant="profile"
+            [following]="following()"
+            (toggleRequested)="followRequested.emit($event)"
+          />
+        }
+      </div>
+      <p class="profile-bio">{{ profile().bio }}</p>
+      <div class="profile-current">
+        <span>Current state</span>
+        <p>{{ profile().status }}</p>
+      </div>
+      <dl class="profile-stats">
+        <div>
+          <dt>Followers</dt>
+          <dd>{{ profile().followers }}</dd>
+        </div>
+        <div>
+          <dt>Posts</dt>
+          <dd>{{ profile().posts }}</dd>
+        </div>
+        <div>
+          <dt>Specialty</dt>
+          <dd>{{ profile().specialty }}</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</ng-template>

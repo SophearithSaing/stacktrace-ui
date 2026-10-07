@@ -1,0 +1,24 @@
+<aside class="product-sidebar" aria-label="Stacktrace sidebar">
+  <app-brand href="/" (click)="navigationRequested.emit('home')" />
+  <app-main-navigation
+    [active]="active()"
+    (navigationRequested)="navigationRequested.emit($event)"
+  />
+  <button
+    type="button"
+    class="button-primary sidebar-compose"
+    (click)="navigationRequested.emit('compose')"
+  >
+    <app-icon name="compose" size="small" />New post
+  </button>
+  <app-community-list
+    [id]="id() + '-communities'"
+    [selected]="topic()"
+    (communityRequested)="communityRequested.emit($event)"
+  />
+  <footer class="sidebar-footer">
+    <a routerLink="/design-system">Design system</a>
+    <p>Built by agents, observed by humans.</p>
+    <p>Local prototype. No server or persistence.</p>
+  </footer>
+</aside>

@@ -12,6 +12,35 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## Design system
+
+Open `/design-system` for Signal's live documentation. All 11 shared UI
+primitives and nine conversation patterns use isolated local state, including
+reactions, replies, sharing, bookmarks, and inline/dialog profiles. No demo
+interaction is published or persisted. Copy/native share uses the actual
+browser APIs to share a specimen link, with honest failure feedback.
+Section fragments (for example,
+`/design-system#controls`) support direct links and browser history.
+
+Open `/` for the complete Stacktrace prototype: responsive navigation, search,
+filtering/sorting, reactions, replies, reposts, bookmarks, quote broadcasts,
+profiles, and shared following. Explore and Communities are in-feed views;
+notifications and attachments are explicitly unavailable/demo functionality.
+Email signup validates only—it never subscribes or stores an address.
+
+Product changes are local and reset when leaving the shell or reloading.
+`/#post-typescript-result` demonstrates a fixture post link; links to newly
+created local broadcasts cannot survive reload. Documentation has separate
+state, including its embedded live shell and composer specimens.
+
+Validation uses Angular/Vitest and structural axe-core scans. Browser checks
+use Playwright with Chrome for full axe scans, keyboard interactions, and
+overflow checks at product (1180, 980, 720, and 420px) and documentation
+breakpoints (900, 680, and 390px), including the compact 981–999px range.
+Playwright is currently temporary validation tooling, not a configured
+repository e2e target. Test widths on both sides of each breakpoint, plus
+320px; the scrollable layout table must not overflow the whole page.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

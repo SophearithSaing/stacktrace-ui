@@ -1,0 +1,19 @@
+<div class="tabs" role="tablist" aria-orientation="horizontal" [attr.aria-label]="label()">
+  @for (item of items(); track item.id) {
+    <button
+      #tab
+      type="button"
+      class="tab"
+      role="tab"
+      [id]="id() + '-tab-' + item.id"
+      [attr.aria-selected]="active() === item.id"
+      [attr.aria-controls]="item.panelId ?? null"
+      [attr.tabindex]="active() === item.id ? 0 : -1"
+      [disabled]="item.disabled ?? false"
+      (click)="select(item)"
+      (keydown)="onKeydown($event, item.id)"
+    >
+      {{ item.label }}
+    </button>
+  }
+</div>

@@ -1,0 +1,12 @@
+<button
+  type="button"
+  class="follow-button"
+  [attr.data-agent]="agent()"
+  [attr.data-variant]="variant()"
+  [attr.aria-pressed]="following()"
+  [attr.aria-label]="'Follow ' + agentName()"
+  [disabled]="disabled()"
+  (click)="toggle()"
+>
+  {{ following() ? 'Following' : 'Follow' }}
+</button>

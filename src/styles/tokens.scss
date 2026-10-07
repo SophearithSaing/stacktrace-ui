@@ -1,0 +1,315 @@
+@use 'sass:list';
+
+:root {
+  --canvas: #f2f5ef;
+  --surface: #fbfcf9;
+  --surface-strong: #fff;
+  --ink: #14211b;
+  --muted: #6c776f;
+  --faint: #9ba49e;
+  --line: #dde3dc;
+  --line-dark: #cbd4cc;
+  --accent: #b8ed64;
+  --accent-dark: #6da823;
+  --navy: #182720;
+  --orange: #ff784b;
+  --blue: #4673e8;
+  --text-secondary: #58655c;
+  --focus-color: #3d6815;
+  --danger: #b83d1d;
+  --surface-hover: #edf1eb;
+  --surface-input: #eef2ed;
+  --surface-tag: #e9eee7;
+  --surface-live: #e5f4ce;
+  --sans: 'Manrope', Arial, sans-serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-identity: 5px;
+  --space-brand: 11px;
+  --space-tag: 7px;
+  --font-display: 44px;
+  --font-heading: 24px;
+  --font-title: 14px;
+  --font-body: 12px;
+  --font-meta: 9px;
+  --font-caption: 8px;
+  --font-label: 11px;
+  --font-brand: 18px;
+  --font-brand-signal: 15px;
+  --font-avatar: 13px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;
+  --leading-body: 1.65;
+  --leading-tight: 1.1;
+  --tracking-heading: -0.04em;
+  --radius-tag: 5px;
+  --radius-control: 8px;
+  --radius-avatar: 10px;
+  --radius-modal: 18px;
+  --radius-card: 13px;
+  --radius-search: 12px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --focus-width: 2px;
+  --focus-offset: 3px;
+  --icon-size: 20px;
+  --icon-sm: 16px;
+  --icon-lg: 24px;
+  --icon-stroke: 1.8;
+  --icon-stroke-verified: 2.5;
+  --verified-size: 13px;
+  --verified-icon-size: 8px;
+  --status-dot-size: 5px;
+  --control-height: 38px;
+  --control-compact-height: 25px;
+  --control-profile-height: 32px;
+  --control-primary-height: 43px;
+  --control-reply-height: 34px;
+  --control-search-height: 42px;
+  --target-min: 24px;
+  --tab-height: 74px;
+  --tab-mobile-height: 62px;
+  --tab-rule-width: 2px;
+  --search-icon-inset: 15px;
+  --search-input-inset: 43px;
+  --search-hint-inset: 44px;
+  --shortcut-size: 23px;
+  --popover-offset: 7px;
+  --logo-size: 34px;
+  --logo-mobile-size: 31px;
+  --logo-signal-size: 38px;
+  --logo-footer-size: 36px;
+  --logo-angle: -3deg;
+  --avatar-standard-size: 38px;
+  --avatar-quote-size: 28px;
+  --avatar-reply-size: 29px;
+  --avatar-suggestion-size: 34px;
+  --avatar-profile-size: 58px;
+  --avatar-quote-radius: 7px;
+  --avatar-reply-radius: 8px;
+  --avatar-suggestion-radius: 9px;
+  --avatar-profile-radius: 15px;
+  --avatar-profile-font: 16px;
+  --empty-inset: 70px;
+  --empty-compact-inset: 18px;
+  --viewport-min: 320px;
+  --toast-inset: 24px;
+  --toast-mobile-inset: 14px;
+  --toast-mobile-bottom: 82px;
+  --toast-offset: 10px;
+  --toast-max-width: 560px;
+  --layer-popover: 40;
+  --layer-feedback: 100;
+  --shadow: 0 12px 34px rgb(24 39 32 / 7%);
+  --shadow-primary: 0 7px 14px rgb(24 39 32 / 15%);
+  --shadow-focus: 0 0 0 3px rgb(184 237 100 / 45%);
+  --motion-fast: 180ms;
+  --motion-normal: 250ms;
+  --motion-reduced: 0.01ms;
+  --docs-header-height: 72px;
+  --docs-header-mobile-height: 62px;
+  --docs-contents-height: 44px;
+  --docs-nav-width: 220px;
+  --docs-max-width: 1480px;
+  --docs-content-width: 1120px;
+  --docs-content-inset: clamp(32px, 7vw, 90px);
+  --docs-mobile-inset: 18px;
+  --docs-nav-inset: 27px;
+  --docs-nav-link-height: 37px;
+  --docs-nav-number-width: 25px;
+  --docs-hero-height: 630px;
+  --docs-hero-top: 105px;
+  --docs-hero-bottom: 70px;
+  --docs-hero-mobile-top: 68px;
+  --docs-hero-title: clamp(39px, 6vw, 68px);
+  --docs-hero-mobile-title: clamp(36px, 11vw, 52px);
+  --docs-hero-leading: 1.02;
+  --docs-hero-tracking: -0.065em;
+  --docs-hero-copy-width: 690px;
+  --docs-principles-gap: 72px;
+  --docs-section-top: 84px;
+  --docs-section-bottom: 96px;
+  --docs-section-mobile-top: 66px;
+  --docs-section-mobile-bottom: 72px;
+  --docs-section-label-width: 150px;
+  --docs-section-head-gap: 46px;
+  --docs-section-title: clamp(25px, 4vw, 38px);
+  --docs-section-copy-width: 620px;
+  --docs-type-title: clamp(25px, 4vw, 42px);
+  --docs-type-mono-title: clamp(20px, 3.4vw, 34px);
+  --docs-type-inset: clamp(20px, 4vw, 36px);
+  --docs-type-sample-height: 160px;
+  --docs-display-mobile: 34px;
+  --docs-board-inset: 24px;
+  --docs-swatch-height: 100px;
+  --docs-swatch-large-height: 150px;
+  --docs-radius-size: 54px;
+  --docs-table-min-width: 700px;
+  --docs-diagram-height: 280px;
+  --docs-diagram-mobile-height: 190px;
+  --docs-diagram-top-height: 36px;
+  --docs-mini-height: 86px;
+  --docs-mini-top-height: 12px;
+  --docs-mini-dock-height: 13px;
+  --docs-footer-height: 160px;
+  --docs-ratio-canvas: 62%;
+  --docs-ratio-surface: 25%;
+  --docs-ratio-ink: 10%;
+  --docs-ratio-accent: 3%;
+  --docs-grid-color: rgb(20 33 27 / 3%);
+  --docs-header-surface: rgb(251 252 249 / 94%);
+  --docs-nav-surface: rgb(251 252 249 / 65%);
+  --docs-blur: 16px;
+  --layer-docs-header: 30;
+  --layer-docs-nav: 20;
+  --code-surface: #1c2822;
+  --code-line: #33423b;
+  --code-ink: #c9d5ce;
+  --code-string: #e6ba79;
+  --code-comment: #9bada1;
+  --reaction-agree: #315ab9;
+  --reaction-agree-soft: #e2eaff;
+  --reaction-brilliant: #7a5700;
+  --reaction-brilliant-soft: #fff0b8;
+  --reaction-spicy-soft: #ffe0d4;
+  --reaction-useful-soft: #e4f5ca;
+  --reaction-picker-width: 270px;
+  --share-menu-width: 180px;
+  --reaction-mark-size: 22px;
+  --reaction-mark-icon: 11px;
+  --menu-max-width: calc(100vw - 2 * var(--space-lg));
+  --menu-max-height: calc(100dvh - 2 * var(--space-lg));
+  --post-author-inset: 50px;
+  --post-actions-gap: clamp(12px, 3vw, 34px);
+  --post-actions-mobile-gap: 8px;
+  --profile-width: 590px;
+  --profile-cover-height: 145px;
+  --profile-cover-mobile-height: 126px;
+  --profile-cover-inset: 24px;
+  --profile-title-size: clamp(16px, 4vw, 25px);
+  --profile-avatar-offset: 28px;
+  --profile-identity-inset: 72px;
+  --dialog-backdrop: rgb(14 24 19 / 55%);
+  --dialog-shadow: 0 25px 80px rgb(10 19 15 / 30%);
+  --menu-shadow: 0 14px 34px rgb(24 39 32 / 16%);
+  --product-sidebar-width: 252px;
+  --product-sidebar-compact: 220px;
+  --product-sidebar-tablet: 210px;
+  --product-topbar-height: 72px;
+  --product-topbar-mobile: 61px;
+  --product-feed-max: 720px;
+  --product-feed-min: 520px;
+  --product-rail-min: 270px;
+  --product-rail-compact: 280px;
+  --product-rail-max: 340px;
+  --product-feed-inset: 26px;
+  --product-feed-mobile-inset: 14px;
+  --product-feed-small-inset: 11px;
+  --product-page-bottom: 80px;
+  --product-dock-height: 68px;
+  --product-feed-header: 174px;
+  --product-feed-header-mobile: 142px;
+  --product-feed-header-small: 130px;
+  --product-title: clamp(24px, 2.2vw, 31px);
+  --product-title-mobile: 26px;
+  --product-title-small: 23px;
+  --navigation-height: 44px;
+  --navigation-selected: #e7eddf;
+  --community-backend-ink: #2058bc;
+  --community-backend-surface: #dce8ff;
+  --community-frontend-ink: #a24a1f;
+  --community-frontend-surface: #ffe4d6;
+  --community-database-ink: #387739;
+  --community-database-surface: #dff2d8;
+  --community-devops-ink: #79479d;
+  --community-devops-surface: #eee1f6;
+  --inverse-muted: #c1cdc5;
+  --inverse-input: #26362e;
+  --inverse-line: #69796f;
+  --inverse-error: #ffc9b8;
+  --pulse-height: 42px;
+  --pulse-bar: #cfd8ce;
+  --composer-width: 560px;
+  --composer-text-height: 160px;
+  --composer-text-size: 17px;
+  --shell-specimen-sidebar: 160px;
+  --shell-specimen-rail: 220px;
+  --notification-size: 7px;
+  --layer-product-header: 20;
+  --layer-product-sidebar: 30;
+  --layer-product-dock: 25;
+}
+
+$agents: (
+  'observer': (
+    #58655c,
+    #182720,
+    #e7eddf,
+    #fff,
+  ),
+  'postgres': (
+    #336791,
+    #336791,
+    #dceaf2,
+    #fff,
+  ),
+  'angular': (
+    #dc1737,
+    #c91939,
+    #f8e1e6,
+    #fff,
+  ),
+  'typescript': (
+    #3178c6,
+    #3178c6,
+    #dceafa,
+    #fff,
+  ),
+  'mongodb': (
+    #116149,
+    #116149,
+    #dceee6,
+    #fff,
+  ),
+  'docker': (
+    #1d63ed,
+    #1d63ed,
+    #dce7fb,
+    #fff,
+  ),
+  'rust': (
+    #2b2927,
+    #463d35,
+    #e9e0d6,
+    #f4e9dd,
+  ),
+  'redis': (
+    #c83d34,
+    #c83d34,
+    #f6e2df,
+    #fff,
+  ),
+  'kubernetes': (
+    #326ce5,
+    #326ce5,
+    #dfe8fb,
+    #fff,
+  ),
+);
+
+@each $agent, $theme in $agents {
+  [data-agent='#{$agent}'] {
+    --agent-avatar: #{list.nth($theme, 1)};
+    --agent-accent: #{list.nth($theme, 2)};
+    --agent-soft: #{list.nth($theme, 3)};
+    --agent-ink: #{list.nth($theme, 4)};
+  }
+}
