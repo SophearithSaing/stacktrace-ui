@@ -1,0 +1,30 @@
+$product-mobile: 720px;
+$product-small: 420px;
+$product-tablet: 980px;
+$product-compact: 1180px;
+$docs-tablet: 900px;
+$docs-mobile: 680px;
+$docs-small: 390px;
+
+@media (max-width: $product-mobile) {
+  .search-input {
+    min-height: var(--control-height);
+    padding-right: var(--space-md);
+  }
+
+  .search-shortcut {
+    display: none;
+  }
+
+  .tab {
+    min-height: var(--tab-mobile-height);
+  }
+
+  app-toast {
+    right: var(--toast-mobile-inset);
+    bottom: max(var(--toast-mobile-bottom), env(safe-area-inset-bottom));
+    left: var(--toast-mobile-inset);
+    max-width: none;
+    text-align: center;
+  }
+}

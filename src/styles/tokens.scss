@@ -1,0 +1,183 @@
+@use 'sass:list';
+
+:root {
+  --canvas: #f2f5ef;
+  --surface: #fbfcf9;
+  --surface-strong: #fff;
+  --ink: #14211b;
+  --muted: #6c776f;
+  --faint: #9ba49e;
+  --line: #dde3dc;
+  --line-dark: #cbd4cc;
+  --accent: #b8ed64;
+  --accent-dark: #6da823;
+  --navy: #182720;
+  --orange: #ff784b;
+  --blue: #4673e8;
+  --text-secondary: #58655c;
+  --focus-color: #3d6815;
+  --danger: #b83d1d;
+  --surface-hover: #edf1eb;
+  --surface-input: #eef2ed;
+  --surface-tag: #e9eee7;
+  --surface-live: #e5f4ce;
+  --sans: 'Manrope', Arial, sans-serif;
+  --mono: 'DM Mono', 'Courier New', monospace;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 20px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-identity: 5px;
+  --space-brand: 11px;
+  --space-tag: 7px;
+  --font-display: 44px;
+  --font-heading: 24px;
+  --font-title: 14px;
+  --font-body: 12px;
+  --font-meta: 9px;
+  --font-caption: 8px;
+  --font-label: 11px;
+  --font-brand: 18px;
+  --font-brand-signal: 15px;
+  --font-avatar: 13px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;
+  --leading-body: 1.65;
+  --leading-tight: 1.1;
+  --tracking-heading: -0.04em;
+  --radius-tag: 5px;
+  --radius-control: 8px;
+  --radius-avatar: 10px;
+  --radius-modal: 18px;
+  --radius-card: 13px;
+  --radius-search: 12px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --focus-width: 2px;
+  --focus-offset: 3px;
+  --icon-size: 20px;
+  --icon-sm: 16px;
+  --icon-lg: 24px;
+  --icon-stroke: 1.8;
+  --icon-stroke-verified: 2.5;
+  --verified-size: 13px;
+  --verified-icon-size: 8px;
+  --status-dot-size: 5px;
+  --control-height: 38px;
+  --control-compact-height: 25px;
+  --control-profile-height: 32px;
+  --control-primary-height: 43px;
+  --control-reply-height: 34px;
+  --control-search-height: 42px;
+  --target-min: 24px;
+  --tab-height: 74px;
+  --tab-mobile-height: 62px;
+  --tab-rule-width: 2px;
+  --search-icon-inset: 15px;
+  --search-input-inset: 43px;
+  --search-hint-inset: 44px;
+  --shortcut-size: 23px;
+  --popover-offset: 7px;
+  --logo-size: 34px;
+  --logo-mobile-size: 31px;
+  --logo-signal-size: 38px;
+  --logo-footer-size: 36px;
+  --logo-angle: -3deg;
+  --avatar-standard-size: 38px;
+  --avatar-quote-size: 28px;
+  --avatar-reply-size: 29px;
+  --avatar-suggestion-size: 34px;
+  --avatar-profile-size: 58px;
+  --avatar-quote-radius: 7px;
+  --avatar-reply-radius: 8px;
+  --avatar-suggestion-radius: 9px;
+  --avatar-profile-radius: 15px;
+  --avatar-profile-font: 16px;
+  --empty-inset: 70px;
+  --empty-compact-inset: 18px;
+  --viewport-min: 320px;
+  --toast-inset: 24px;
+  --toast-mobile-inset: 14px;
+  --toast-mobile-bottom: 82px;
+  --toast-offset: 10px;
+  --toast-max-width: 560px;
+  --layer-popover: 40;
+  --layer-feedback: 100;
+  --shadow: 0 12px 34px rgb(24 39 32 / 7%);
+  --shadow-primary: 0 7px 14px rgb(24 39 32 / 15%);
+  --shadow-focus: 0 0 0 3px rgb(184 237 100 / 45%);
+  --motion-fast: 180ms;
+  --motion-normal: 250ms;
+  --motion-reduced: 0.01ms;
+}
+
+$agents: (
+  'observer': (
+    #58655c,
+    #182720,
+    #e7eddf,
+    #fff,
+  ),
+  'postgres': (
+    #336791,
+    #336791,
+    #dceaf2,
+    #fff,
+  ),
+  'angular': (
+    #dc1737,
+    #c91939,
+    #f8e1e6,
+    #fff,
+  ),
+  'typescript': (
+    #3178c6,
+    #3178c6,
+    #dceafa,
+    #fff,
+  ),
+  'mongodb': (
+    #116149,
+    #116149,
+    #dceee6,
+    #fff,
+  ),
+  'docker': (
+    #1d63ed,
+    #1d63ed,
+    #dce7fb,
+    #fff,
+  ),
+  'rust': (
+    #2b2927,
+    #463d35,
+    #e9e0d6,
+    #f4e9dd,
+  ),
+  'redis': (
+    #c83d34,
+    #c83d34,
+    #f6e2df,
+    #fff,
+  ),
+  'kubernetes': (
+    #326ce5,
+    #326ce5,
+    #dfe8fb,
+    #fff,
+  ),
+);
+
+@each $agent, $theme in $agents {
+  [data-agent='#{$agent}'] {
+    --agent-avatar: #{list.nth($theme, 1)};
+    --agent-accent: #{list.nth($theme, 2)};
+    --agent-soft: #{list.nth($theme, 3)};
+    --agent-ink: #{list.nth($theme, 4)};
+  }
+}
