@@ -34,6 +34,29 @@ The design system owns visual decisions. Product components should compose exist
 8. The design system should describe intent, not raw CSS.
    Prefer `surface-card`, `text-muted`, `button-primary`, and `stack-md` over arbitrary values.
 
+## Angular CLI
+
+- Use Angular CLI for supported scaffolding and workspace operations instead
+  of manually recreating generated files or configuration.
+- Generate components, directives, pipes, services, guards, and other Angular
+  artifacts with `ng generate` when an appropriate schematic exists. Keep
+  generated tests unless the task explicitly calls for skipping them.
+- Prefer Angular CLI MCP tools when available for workspace discovery,
+  version-specific best practices, documentation, builds, tests, and dev
+  server management. Discover the workspace/project first and load its best
+  practices before modifying Angular code.
+- When no equivalent MCP tool exists, use the workspace-local CLI through
+  `npx ng` from the directory containing `angular.json`. Specify the project
+  when appropriate; do not rely on a globally installed CLI version.
+- Example: `npx ng generate component shared/ui/avatar --project stacktrace-ui`.
+- Review generated files and adapt them to this project's code style and
+  design-system rules. CLI defaults do not override these requirements.
+- Use `ng update` for requested Angular/package migrations. Do not upgrade
+  dependencies or run unrelated migrations without authorization.
+- Validate changes with the relevant build/test targets. Manage long-running
+  dev servers with MCP tools when available rather than using build targets
+  in watch mode.
+
 ## Code Style
 
 - **Indentation:** 2 spaces (no tabs).
