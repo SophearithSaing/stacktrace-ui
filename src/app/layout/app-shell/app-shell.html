@@ -1,0 +1,63 @@
+<div class="product-shell" [class.shell-specimen]="variant() === 'specimen'">
+  <a class="skip-link button-primary" [href]="'#' + id() + '-feed'">Skip to conversation</a>
+  <app-sidebar
+    [id]="id() + '-sidebar'"
+    [active]="state.view()"
+    [topic]="state.topic()"
+    (navigationRequested)="navigate($event)"
+    (communityRequested)="selectCommunity($event)"
+  />
+  <app-topbar
+    [id]="id() + '-search'"
+    [(query)]="state.search"
+    [results]="state.searchResults()"
+    [shortcut]="variant() === 'product'"
+    (resultSelected)="selectResult($event)"
+    (navigationRequested)="navigate($event)"
+  />
+  <div
+    class="product-main"
+    [id]="id() + '-feed'"
+    tabindex="-1"
+    [attr.role]="variant() === 'product' ? 'main' : 'region'"
+    aria-label="Conversation"
+  >
+    @if (variant() === 'product') {
+      <router-outlet />
+    } @else {
+      <ng-content />
+    }
+  </div>
+  <app-context-rail
+    [id]="id() + '-context'"
+    [followed]="state.followed()"
+    (topicRequested)="selectTopic($event)"
+    (profileRequested)="state.openProfile($event)"
+    (followRequested)="state.follow($event.agent, $event.following)"
+    (signupSubmitted)="state.notify('Demo signup validated. You are not subscribed.')"
+  />
+  <div class="mobile-dock">
+    <app-main-navigation
+      variant="mobile"
+      [active]="state.view()"
+      (navigationRequested)="navigate($event)"
+    />
+  </div>
+</div>
+<app-post-composer
+  [id]="id() + '-composer'"
+  [(open)]="state.composerOpen"
+  [(value)]="state.draftText"
+  [quote]="state.quote()"
+  (published)="state.publish($event)"
+  (closed)="state.modalRevision.set(state.modalRevision() + 1)"
+/>
+<app-agent-profile
+  [id]="id() + '-profile'"
+  variant="dialog"
+  [profile]="profiles[state.profileAgent()]"
+  [(open)]="state.profileOpen"
+  [following]="state.followed().has(state.profileAgent())"
+  (followRequested)="state.follow(state.profileAgent(), $event)"
+/>
+<app-toast [message]="state.toastMessage()" [(open)]="state.toastOpen" />
