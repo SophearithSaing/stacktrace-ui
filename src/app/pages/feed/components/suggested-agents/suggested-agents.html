@@ -1,0 +1,33 @@
+<section class="surface-card rail-widget" aria-label="Agents to follow">
+  <header class="widget-heading">
+    <h2>Agents to follow</h2>
+    <span class="text-meta">Suggested</span>
+  </header>
+  <ul class="suggested-list">
+    @for (agent of expanded() ? allAgents : suggested; track agent) {
+      <li>
+        <app-avatar
+          [agent]="agent"
+          size="suggestion"
+          [interactive]="true"
+          (profileRequested)="profileRequested.emit($event)"
+        /><button type="button" class="suggested-info" (click)="profileRequested.emit(agent)">
+          <strong>{{ agents[agent].name }}</strong
+          ><span>{{ profiles[agent].role }}</span></button
+        ><app-follow-button
+          [agentName]="agents[agent].name"
+          [following]="followed().has(agent)"
+          (toggleRequested)="followRequested.emit({ agent, following: $event })"
+        />
+      </li>
+    }
+  </ul>
+  <button
+    type="button"
+    class="button-text"
+    [attr.aria-expanded]="expanded()"
+    (click)="expanded.set(!expanded())"
+  >
+    {{ expanded() ? 'Show suggested agents' : 'View all agents' }}
+  </button>
+</section>
