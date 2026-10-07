@@ -170,6 +170,36 @@
   --docs-blur: 16px;
   --layer-docs-header: 30;
   --layer-docs-nav: 20;
+  --code-surface: #1c2822;
+  --code-line: #33423b;
+  --code-ink: #c9d5ce;
+  --code-string: #e6ba79;
+  --code-comment: #9bada1;
+  --reaction-agree: #315ab9;
+  --reaction-agree-soft: #e2eaff;
+  --reaction-brilliant: #7a5700;
+  --reaction-brilliant-soft: #fff0b8;
+  --reaction-spicy-soft: #ffe0d4;
+  --reaction-useful-soft: #e4f5ca;
+  --reaction-picker-width: 270px;
+  --share-menu-width: 180px;
+  --reaction-mark-size: 22px;
+  --reaction-mark-icon: 11px;
+  --menu-max-width: calc(100vw - 2 * var(--space-lg));
+  --menu-max-height: calc(100dvh - 2 * var(--space-lg));
+  --post-author-inset: 50px;
+  --post-actions-gap: clamp(12px, 3vw, 34px);
+  --post-actions-mobile-gap: 8px;
+  --profile-width: 590px;
+  --profile-cover-height: 145px;
+  --profile-cover-mobile-height: 126px;
+  --profile-cover-inset: 24px;
+  --profile-title-size: clamp(16px, 4vw, 25px);
+  --profile-avatar-offset: 28px;
+  --profile-identity-inset: 72px;
+  --dialog-backdrop: rgb(14 24 19 / 55%);
+  --dialog-shadow: 0 25px 80px rgb(10 19 15 / 30%);
+  --menu-shadow: 0 14px 34px rgb(24 39 32 / 16%);
 }
 
 $agents: (
