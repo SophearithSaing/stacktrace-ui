@@ -1,0 +1,19 @@
+<form novalidate (submit)="send($event)">
+  <label class="visually-hidden" [for]="id()">{{ label() }}</label>
+  <div class="reply-fields">
+    <input
+      type="text"
+      class="input-field"
+      [id]="id()"
+      [formField]="replyForm"
+      [placeholder]="placeholder()"
+      [attr.aria-invalid]="showError()"
+      [attr.aria-describedby]="showError() ? id() + '-error' : null"
+      (input)="clearError()"
+    />
+    <button type="submit" class="button-primary" [disabled]="disabled()">Reply</button>
+  </div>
+  @if (showError()) {
+    <p class="field-error" [id]="id() + '-error'" role="status">Write a reply before sending.</p>
+  }
+</form>
