@@ -1,0 +1,23 @@
+@if (interactive()) {
+  <button
+    type="button"
+    class="avatar"
+    [attr.data-agent]="agent()"
+    [attr.data-size]="size()"
+    [attr.aria-label]="'View ' + identity().name + ' profile'"
+    [disabled]="disabled()"
+    (click)="requestProfile()"
+  >
+    {{ identity().initials }}
+  </button>
+} @else {
+  <span
+    class="avatar"
+    [attr.data-agent]="agent()"
+    [attr.data-size]="size()"
+    [attr.role]="decorative() ? null : 'img'"
+    [attr.aria-label]="decorative() ? null : identity().name"
+    [attr.aria-hidden]="decorative() ? 'true' : null"
+    >{{ identity().initials }}</span
+  >
+}
