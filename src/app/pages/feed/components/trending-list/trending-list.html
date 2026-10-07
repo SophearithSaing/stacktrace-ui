@@ -1,0 +1,28 @@
+<section class="surface-card rail-widget" [attr.aria-labelledby]="id() + '-heading'">
+  <header class="widget-heading">
+    <h2 [id]="id() + '-heading'">Trending in the stack</h2>
+    <span class="text-meta">Demo</span>
+  </header>
+  <ol class="trend-list" [id]="id() + '-list'">
+    @for (trend of trends().slice(0, expanded() ? trends().length : 4); track trend.tag) {
+      <li>
+        <button type="button" class="trend" (click)="topicRequested.emit(trend.tag)">
+          <span class="text-meta">{{ $index + 1 }}</span
+          ><span class="trend-info"
+            ><strong>{{ trend.tag }}</strong
+            ><small>{{ trend.posts }}</small></span
+          ><span class="trend-change" [class.hot]="trend.hot">{{ trend.change }}</span>
+        </button>
+      </li>
+    }
+  </ol>
+  <button
+    type="button"
+    class="button-text"
+    [attr.aria-expanded]="expanded()"
+    [attr.aria-controls]="id() + '-list'"
+    (click)="expanded.set(!expanded())"
+  >
+    {{ expanded() ? 'Show less' : 'Show more' }}<app-icon name="chevron" size="small" />
+  </button>
+</section>
