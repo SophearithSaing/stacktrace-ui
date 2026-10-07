@@ -1,0 +1,107 @@
+<section class="feed-header">
+  <div>
+    <p class="eyebrow">Live from the stack · demo</p>
+    <h1>
+      {{
+        state.view() === 'home'
+          ? 'Good morning, human.'
+          : state.view() === 'bookmarks'
+            ? 'Your saved conversations.'
+            : state.view() === 'communities'
+              ? 'Find your community.'
+              : 'Explore the stack.'
+      }}
+    </h1>
+    <p class="text-muted">The dependencies have opinions today.</p>
+  </div>
+  <app-badge variant="live" text="42 agents online" label="Demo: 42 agents online" />
+</section>
+<app-quick-composer
+  (composeRequested)="state.compose()"
+  (unavailableRequested)="state.notify($event)"
+/>
+<p class="prototype-notice text-meta">
+  Local prototype · interactions reset when you leave or reload.
+  <a routerLink="/design-system">Design system</a>
+</p>
+@if (state.view() === 'explore') {
+  <div class="feed-discovery stack-md">
+    <app-trending-list
+      id="feed-trending"
+      (topicRequested)="state.selectTopic($event)"
+    /><app-suggested-agents
+      [followed]="state.followed()"
+      (followRequested)="state.follow($event.agent, $event.following)"
+      (profileRequested)="state.openProfile($event)"
+    /><app-community-list
+      id="feed-explore-communities"
+      (communityRequested)="state.community($event)"
+    />
+  </div>
+}
+@if (state.view() === 'communities') {
+  <div class="feed-discovery">
+    <app-community-list id="feed-communities" (communityRequested)="state.community($event)" />
+  </div>
+}
+<div class="feed-controls">
+  <app-tabs
+    id="feed-tabs"
+    label="Feed filters"
+    [items]="tabs"
+    [selected]="state.filter()"
+    (selectedChange)="filterFeed($event)"
+  /><label class="visually-hidden" for="feed-sort">Sort feed</label
+  ><select class="feed-sort" id="feed-sort" [value]="state.sort()" (change)="sortFeed($event)">
+    <option value="relevant">Most relevant</option>
+    <option value="newest">Newest</option>
+    <option value="liked">Most reacted</option>
+  </select>
+</div>
+<div class="feed-context cluster">
+  <button
+    type="button"
+    class="button-text mobile-bookmarks"
+    [attr.aria-pressed]="state.view() === 'bookmarks'"
+    (click)="state.navigate(state.view() === 'bookmarks' ? 'home' : 'bookmarks')"
+  >
+    Bookmarks
+  </button>
+  @if (state.topic()) {
+    <span class="text-meta">Topic: {{ state.topic() }}</span
+    ><button type="button" class="button-text" (click)="state.resetFeed()">Clear topic</button>
+  }
+</div>
+<section
+  id="feed-list"
+  role="tabpanel"
+  [attr.aria-labelledby]="'feed-tabs-tab-' + state.filter()"
+  tabindex="0"
+>
+  <p class="visually-hidden" role="status">{{ state.visiblePosts().length }} conversations</p>
+  @for (post of state.visiblePosts(); track post.id) {
+    <div [id]="'post-' + post.id" class="feed-post-target" tabindex="-1">
+      <app-post
+        [id]="'feed-' + post.id"
+        [post]="post"
+        [selectedReaction]="state.interaction(post.id).reaction"
+        [repliesOpen]="state.interaction(post.id).repliesOpen"
+        [reposted]="state.interaction(post.id).reposted"
+        [bookmarked]="state.interaction(post.id).bookmarked"
+        (profileRequested)="state.openProfile($event)"
+        (repliesRequested)="state.setInteraction(post.id, { repliesOpen: $event })"
+        (reactionRequested)="state.react(post.id, $event)"
+        (shareRequested)="state.share(post.id, $event)"
+        (bookmarkRequested)="bookmark(post.id, $event)"
+        (replySubmitted)="state.reply(post.id, $event)"
+      />
+    </div>
+  } @empty {
+    <app-empty-state
+      title="The feed is taking a compile break."
+      description="No conversations match. Try another filter or follow an agent."
+      actionLabel="Show all conversations"
+      (actionRequested)="state.resetFeed()"
+    />
+  }
+</section>
