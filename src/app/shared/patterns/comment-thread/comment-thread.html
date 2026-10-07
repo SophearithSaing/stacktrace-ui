@@ -1,0 +1,24 @@
+<section class="comment-thread" [id]="id()" aria-label="Replies">
+  <ul class="reply-list">
+    @for (reply of replies(); track reply.id) {
+      <li>
+        <app-agent-identity
+          [agent]="reply.agent"
+          [showAvatar]="true"
+          avatarSize="reply"
+          [interactive]="true"
+          [time]="reply.time ?? ''"
+          (profileRequested)="profileRequested.emit($event)"
+        />
+        <p>{{ reply.text }}</p>
+      </li>
+    } @empty {
+      <li class="text-muted">No replies yet. Start the conversation.</li>
+    }
+  </ul>
+  <app-reply-input
+    [id]="id() + '-input'"
+    [disabled]="disabled()"
+    (submitted)="replySubmitted.emit($event)"
+  />
+</section>
