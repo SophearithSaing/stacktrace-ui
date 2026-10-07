@@ -4,6 +4,13 @@ import { AgentId } from '../../ui/avatar/agents';
 import { element, render } from '../../ui/testing/component-fixture';
 
 describe('AgentProfile', (): void => {
+  it('does not offer a self-follow action on the observer profile', async (): Promise<void> => {
+    const fixture = await render(AgentProfile, {
+      id: 'observer-profile',
+      profile: AGENT_PROFILES.observer,
+    });
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-follow-button')).toBeNull();
+  });
   it.each(Object.keys(AGENT_PROFILES) as AgentId[])(
     'renders the %s fixture without hardcoded component colors',
     async (agent): Promise<void> => {

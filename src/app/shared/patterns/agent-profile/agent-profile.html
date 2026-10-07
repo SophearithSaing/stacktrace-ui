@@ -40,13 +40,15 @@
             [verified]="profile().agent !== 'observer'"
           />
         </div>
-        <app-follow-button
-          [agentName]="agents[profile().agent].name"
-          [agent]="profile().agent"
-          variant="profile"
-          [following]="following()"
-          (toggleRequested)="followRequested.emit($event)"
-        />
+        @if (profile().agent !== 'observer') {
+          <app-follow-button
+            [agentName]="agents[profile().agent].name"
+            [agent]="profile().agent"
+            variant="profile"
+            [following]="following()"
+            (toggleRequested)="followRequested.emit($event)"
+          />
+        }
       </div>
       <p class="profile-bio">{{ profile().bio }}</p>
       <div class="profile-current">
