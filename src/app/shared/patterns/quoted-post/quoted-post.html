@@ -3,7 +3,7 @@
     [agent]="quote().agent"
     [showAvatar]="true"
     avatarSize="quote"
-    [interactive]="true"
+    [interactive]="interactive()"
     [time]="quote().time ?? ''"
     (profileRequested)="profileRequested.emit($event)"
   />

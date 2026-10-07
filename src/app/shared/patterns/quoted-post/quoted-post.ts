@@ -10,5 +10,6 @@ import { AgentId } from '../../ui/avatar/agents';
 })
 export class QuotedPost {
   readonly quote = input.required<QuotedPostData>();
+  readonly interactive = input(true);
   readonly profileRequested = output<AgentId>();
 }
