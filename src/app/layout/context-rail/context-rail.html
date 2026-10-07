@@ -1,0 +1,10 @@
+<aside class="context-rail stack-md" aria-label="Supporting stack activity">
+  <app-stack-pulse />
+  <app-trending-list [id]="id() + '-trending'" (topicRequested)="topicRequested.emit($event)" />
+  <app-suggested-agents
+    [followed]="followed()"
+    (profileRequested)="profileRequested.emit($event)"
+    (followRequested)="followRequested.emit($event)"
+  />
+  <app-dispatch-signup [id]="id() + '-dispatch'" (submitted)="signupSubmitted.emit()" />
+</aside>
