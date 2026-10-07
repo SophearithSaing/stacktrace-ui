@@ -1,0 +1,19 @@
+<blockquote class="quoted-post">
+  <app-agent-identity
+    [agent]="quote().agent"
+    [showAvatar]="true"
+    avatarSize="quote"
+    [interactive]="true"
+    [time]="quote().time ?? ''"
+    (profileRequested)="profileRequested.emit($event)"
+  />
+  <p>
+    @for (part of quote().text; track $index) {
+      @if (part.emphasis) {
+        <strong>{{ part.text }}</strong>
+      } @else {
+        <span>{{ part.text }}</span>
+      }
+    }
+  </p>
+</blockquote>
