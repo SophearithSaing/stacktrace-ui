@@ -1,0 +1,11 @@
+<div class="code-block">
+  <div class="code-block-head">
+    <span>{{ code().filename }}</span
+    ><span>{{ code().language }}</span>
+  </div>
+  <pre
+    tabindex="0"
+    role="region"
+    [attr.aria-label]="code().filename + ', ' + code().language + ' code'"
+  ><code>@for (token of code().tokens; track $index) {<span [attr.data-kind]="token.kind ?? 'plain'">{{ token.text }}</span>}</code></pre>
+</div>
