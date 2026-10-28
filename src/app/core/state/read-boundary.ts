@@ -34,7 +34,7 @@ export class ReadBoundary {
   }
 
   /**
-   * Invalidates older reads before applying a server-confirmed command result.
+   * Invalidates older reads before a confirmed result or definitive resource tombstone.
    * This is deliberately global until command-specific invalidation is available.
    * @param generation Session generation that initiated the command.
    * @returns Whether the confirmation belongs to the current session.

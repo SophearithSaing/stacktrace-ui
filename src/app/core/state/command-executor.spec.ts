@@ -164,4 +164,16 @@ describe('CommandExecutor', (): void => {
     });
     expect(executor.pending(`post:${post.id}`)).toBe(false);
   });
+
+  it('does not publish an old viewer payload if reconciliation refresh changes the session synchronously', (): void => {
+    const source = new Subject<Post>();
+    const refresh = reads.refreshes.subscribe((): void => session.clear());
+    const results: CommandResult<Post>[] = [];
+    executor.run(spec(source)).subscribe((result): void => {
+      results.push(result);
+    });
+    source.next(post);
+    expect(results).toEqual([{ status: 'stale' }]);
+    refresh.unsubscribe();
+  });
 });

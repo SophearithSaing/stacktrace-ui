@@ -135,7 +135,11 @@ export class CommandExecutor {
             }
             this.release(operation);
             this.reads.refreshCollections(operation.generation);
-            result.next({ status: 'confirmed', value });
+            result.next(
+              this.session.generation() === operation.generation
+                ? { status: 'confirmed', value }
+                : { status: 'stale' },
+            );
             result.complete();
           } catch (error: unknown) {
             this.reject(operation, result, error);
@@ -183,6 +187,9 @@ export class CommandExecutor {
       } catch (reconciliationError: unknown) {
         failure = normalizeFailure(reconciliationError);
       }
+    }
+    if (!this.current(operation)) {
+      return;
     }
     this.release(operation);
     const failures = new Map(this.failures());
