@@ -1,0 +1,50 @@
+<div class="stack-sm">
+  <p class="text-muted" role="status" aria-live="polite">
+    @switch (state().phase) {
+      @case ('loading') {
+        Loading…
+      }
+      @case ('refreshing') {
+        Refreshing… Previously loaded content remains visible.
+      }
+      @case ('loading-more') {
+        Loading more…
+      }
+      @default {
+        @if (state().error === 'network') {
+          Could not connect. Check your connection and retry.
+        } @else if (state().error) {
+          Could not load this collection. Please retry.
+        } @else if (state().stale) {
+          Content has changed. Refresh to continue.
+        }
+        @if (state().error && state().hasContent) {
+          Previously loaded content remains visible.
+        }
+      }
+    }
+  </p>
+  @if (state().empty) {
+    <app-empty-state title="No results yet." />
+  }
+  @if (state().error || state().stale) {
+    <button
+      type="button"
+      class="button-text"
+      [disabled]="!state().canRetry"
+      (click)="retryRequested.emit()"
+    >
+      {{ state().error ? 'Retry' : 'Refresh' }}
+    </button>
+  }
+  @if (state().canLoadMore || state().phase === 'loading-more') {
+    <button
+      type="button"
+      class="button-text"
+      [disabled]="!state().canLoadMore"
+      (click)="moreRequested.emit()"
+    >
+      Load more
+    </button>
+  }
+</div>

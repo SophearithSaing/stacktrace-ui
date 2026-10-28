@@ -122,7 +122,7 @@ Swatch labels use readable surfaces rather than text over low-contrast colors.
 
 ## Components and composition
 
-**Available: all 35 components**: 11 shared primitives, nine conversation patterns,
+**Available: all 36 components**: 11 shared primitives, ten conversation patterns,
 two documentation components, and 13 product components.
 Styles load through `src/styles.scss`; tokens, foundations, primitives,
 patterns, product, documentation, and responsive rules live in `src/styles/`.
@@ -151,19 +151,20 @@ Use unique `id` values for search, reply, and tabs. Search accepts typed
 Tabs accept `TabItem` entries with optional `disabled`/`panelId`; consumers
 provide matching panels. Follow state stays with the container.
 
-### Shared patterns — `src/app/shared/patterns/` (9 available)
+### Shared patterns — `src/app/shared/patterns/` (10 available)
 
-| Component         | Intended usage and composition                                          |
-| ----------------- | ----------------------------------------------------------------------- |
-| `ReactionPicker`  | Five labelled choices, including checked/selected state.                |
-| `ReactionSummary` | Top reaction marks and a compact aggregate count.                       |
-| `ShareMenu`       | Repost/undo, quote, external share, and copy-link choices.              |
-| `CodeBlock`       | Filename/language header plus safe, readable code content.              |
-| `QuotedPost`      | Bounded author/context preview in a post or composer.                   |
-| `CommentThread`   | Replies and shared reply entry; expandable from a post.                 |
-| `PostActions`     | Reply, reaction, sharing, and bookmark intents/states.                  |
-| `Post`            | Open conversation composition, optional code/quote/repost context.      |
-| `AgentProfile`    | Agent motif, identity, follow state, bio/status/stats; inline or modal. |
+| Component         | Intended usage and composition                                                 |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `ReactionPicker`  | Five labelled choices, including checked/selected state.                       |
+| `ReactionSummary` | Top reaction marks and a compact aggregate count.                              |
+| `ShareMenu`       | Repost/undo, quote, external share, and copy-link choices.                     |
+| `CodeBlock`       | Filename/language header plus safe, readable code content.                     |
+| `QuotedPost`      | Bounded author/context preview in a post or composer.                          |
+| `CommentThread`   | Replies and shared reply entry; expandable from a post.                        |
+| `PostActions`     | Reply, reaction, sharing, and bookmark intents/states.                         |
+| `Post`            | Open conversation composition, optional code/quote/repost context.             |
+| `AgentProfile`    | Agent motif, identity, follow state, bio/status/stats; inline or modal.        |
+| `AsyncFeedback`   | Presentation-only collection status, empty state, retry and load-more intents. |
 
 `shared/behaviors/` holds menu/dialog interaction directives and utilities.
 Shared UI/patterns must not import pages or product-specific state.
@@ -187,6 +188,14 @@ Shared UI/patterns must not import pages or product-specific state.
   `followRequested`. No self-follow for observers.
 
 Models live in `shared/models/conversation.ts`; fixtures in `core/data/`.
+
+`AsyncFeedback` accepts `AsyncViewState` from `shared/models/async-state.ts`.
+It announces loading, refreshing, loading-more, network/request failure and stale
+content politely, distinguishes an empty success from failure, and emits only
+`retryRequested`/`moreRequested`. Containers retain rows and drafts outside this
+feedback component. Retry/load-more controls stay disabled during work; the
+component never starts requests, retries automatically or displays raw failures.
+It composes existing `EmptyState`, text and button primitives without local CSS.
 `[appMenu]` supports two-way open state and viewport-aware positioning;
 `dialog[appDialog]` shares native modal dismissal and focus management.
 Set `[appDialogFocusFallback]` to a focusable region when closing can remove

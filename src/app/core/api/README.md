@@ -86,7 +86,44 @@ store synchronously resets **all** canonical state and memberships on any sessio
 generation change (including loading/failure/clear), not just private data. This
 conservative invalidation requires fresh public reads as well and prevents stale
 viewer representations from crossing epochs. It owns no network subscriptions;
-obsolete results are rejected at commit time. Actual cancellation, cursor chains,
-refresh and mutation ordering belong to the later collection/command boundaries.
+obsolete results are rejected at commit time. Cancellation, cursor chains and
+refresh belong to the collection boundary below; command-specific ordering and
+reconciliation remain the next checkpoint's command boundary.
 Neither the store nor adapters are connected to existing product/demo providers
 at this checkpoint.
+
+## Collection ownership and read safety
+
+`ApiCollections` builds immutable-by-contract endpoint definitions; `CursorCollection`
+owns one active chain and must be disposed by its container. A new selection always
+starts at the first page. Refresh replaces first-page membership while retaining
+previous rows during loading/failure; load-more appends/deduplicates by event ID
+for feeds and resource ID for posts/replies. Cursors are opaque, never decoded or
+shared between definitions. Invalid empty continuations fail instead of silently
+restarting a chain. No request retries automatically.
+
+Selection keys include canonical endpoint options/page size, plus viewer/session
+for viewer-bound endpoints. Replies bind to post/sort and still enforce session
+ownership even though their server cursors are viewer-independent. Only a matching
+oldest-order reply preview with current read provenance can seed a chain; newest
+starts a separate first-page read. Search snippets remain collection-local metadata,
+not canonical post content. Each collection owner namespaces its membership so two
+containers with the same selection cannot mix independent continuation chains.
+Selection replacement/disposal releases those references, not shared entities.
+
+`ReadBoundary.capture()` supplies the session/mutation ticket used by every
+collection entity/membership commit. Selection/refresh/disposal also advance a
+request generation and cancel transport subscriptions. Session invalidation is
+synchronous: active reads cancel and rows/cursors clear before another epoch can
+commit. Confirmed commands must call `ReadBoundary.confirmMutation(commandSession)`
+**before** writing confirmed entities; stale command sessions are rejected. This
+globally cancels older reads and marks collections stale without dropping rows,
+invalidates their cursors, and requires a new first-page read. Failed commands must
+not advance this boundary. Command execution/reconciliation will wire this seam in
+checkpoint 5; there is no product cutover or automatic write replay here.
+
+`AsyncViewState`/`AsyncFeedback` provide transport-independent loading/empty/error/
+retry affordances. Network errors (HTTP status zero) do not pretend to prove browser
+offline status. Raw failures remain in core for later error normalization. Drafts
+are caller-owned and untouched by collection reads. This is neither snapshot
+consistency nor live-stream support; mutable reacted ordering remains best effort.
