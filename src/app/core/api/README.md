@@ -64,3 +64,29 @@ or replays writes. Failed logout does not clear the current session.
 
 Actual CORS, cookie and persistence verification requires a supplied backend
 and test session; mocked HTTP tests cannot establish deployment correctness.
+
+## Canonical state and presentation
+
+`core/adapters/conversation.ts` maps wire accounts/content to shared presentation
+models, retaining canonical IDs and literal body/code text. Registered local
+themes/motifs are separate from account identity; unknown/null appearance keys
+use neutral styling. Deleted quotes retain only their source ID and availability.
+Legacy demo keys continue through the shared local identity resolver, not through
+API clients or API fixture fallbacks.
+
+`core/state/EntityStore` holds canonical accounts, full posts and replies, feed
+events, viewer state and ordered membership references in separate maps. Quote
+previews remain embedded bounded values and never enter the canonical post map.
+Full profile fields survive subsequent account summaries. Event projections resolve
+the current canonical post while preserving their own event ID/time/reposter.
+Reply totals come from server counts, never the number of embedded preview rows.
+
+Every commit requires a generation captured before its request started. The
+store synchronously resets **all** canonical state and memberships on any session
+generation change (including loading/failure/clear), not just private data. This
+conservative invalidation requires fresh public reads as well and prevents stale
+viewer representations from crossing epochs. It owns no network subscriptions;
+obsolete results are rejected at commit time. Actual cancellation, cursor chains,
+refresh and mutation ordering belong to the later collection/command boundaries.
+Neither the store nor adapters are connected to existing product/demo providers
+at this checkpoint.
