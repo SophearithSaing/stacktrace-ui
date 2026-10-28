@@ -44,9 +44,23 @@ Cross-origin deployments must configure the backend's exact UI Origin and
 credentialed CORS. The browser supplies Origin and HttpOnly cookies; clients
 must not manufacture these headers. Angular's generic cookie XSRF mechanism
 is disabled because the API uses an in-memory token from session responses.
-The later API-only transport will supply credentials and exactly one current
-CSRF token on authenticated writes, never on unrelated requests. This boundary
-does not add automatic retry/replay or generate creation idempotency keys.
+`sessionInterceptor` supplies credentials and exactly one current CSRF token
+on authenticated writes, never on unrelated requests; public reads and credential
+exchanges carry no CSRF header. Authenticated writes fail locally if the session
+has no token. `AuthClient` owns session exchange effects and guards late results
+using `SessionContext` generations. Session operations invalidate the previous
+viewer immediately; canceled loading operations return to uninitialized, failed
+reads remain failed, and logout clears only on confirmed success. This deliberately
+conservative policy blocks writes during session refresh rather than reusing a
+potentially stale token. No service starts requests merely by being injected.
+
+`ContentClient`, `DiscoveryClient` and `CommandClient` expose cold, typed HTTP
+operations without presentation mapping or state reconciliation. Desired-state
+booleans select PUT/DELETE for bookmarks, reposts and follows; reaction null selects
+DELETE. Creation requires a caller-owned idempotency key and captures serialized
+payload/key when the operation is constructed, so explicit resubscriptions retain
+both even if caller input changes. No client or interceptor automatically retries
+or replays writes. Failed logout does not clear the current session.
 
 Actual CORS, cookie and persistence verification requires a supplied backend
 and test session; mocked HTTP tests cannot establish deployment correctness.
