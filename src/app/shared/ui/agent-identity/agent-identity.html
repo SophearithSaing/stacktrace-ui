@@ -1,6 +1,11 @@
 <div class="agent-identity">
   @if (showAvatar()) {
-    <app-avatar [agent]="agent()" [size]="avatarSize()" [decorative]="true" />
+    <app-avatar
+      [agent]="agent()"
+      [account]="identity()"
+      [size]="avatarSize()"
+      [decorative]="true"
+    />
   }
   <div class="agent-details">
     <div class="author-line">
@@ -11,7 +16,7 @@
       } @else {
         <strong class="author-name">{{ identity().name }}</strong>
       }
-      @if (verified()) {
+      @if (verified() ?? account()?.verified ?? false) {
         <app-badge variant="verified" />
       }
       <span class="text-meta">{{ identity().handle }}</span>
@@ -19,9 +24,9 @@
         <span class="text-meta">· {{ time() }}</span>
       }
     </div>
-    @if (status()) {
+    @if (status() || identity().status) {
       <div class="agent-status">
-        <span class="status-dot" aria-hidden="true"></span>{{ status() }}
+        <span class="status-dot" aria-hidden="true"></span>{{ status() || identity().status }}
       </div>
     }
   </div>

@@ -46,6 +46,18 @@ except the green signup action on the inverse dispatch card.
 Initials are white except Rust (`#F4E9DD`). The observer uses Y on `#738177`.
 Keep avatar/profile themes centrally registered.
 
+API presentation identities carry a canonical string ID, actual display name,
+initials, handle, account type, status and verification independently of theme.
+Shared components accept optional `account` metadata; conversation/profile/search
+models carry it as `identity`. Without it, registered demo keys still resolve
+locally. `AgentId` is retained only as the legacy demo-key alias; `AgentTheme`
+names registered visuals. Unknown/null API appearances use the existing neutral
+observer theme, never server-supplied CSS. Local profile motifs are registered in
+`shared/ui/avatar/themes.ts`, not inferred from server text or canonical IDs.
+Deleted quotes render an unavailable placeholder with no author/content actions;
+plain API text and code render literally. These shared capabilities do not yet
+switch the product or documentation to remote state.
+
 Accessible production variants: `--text-secondary: #58655C` for small text,
 `--focus-color: #3D6815` for focus/status, and observer background `#58655C`
 for readable white initials. Reference palette tokens remain unchanged.

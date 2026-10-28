@@ -1,7 +1,7 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
+import { AccountIdentity, resolveIdentity } from '../../models/identity';
 import { PostData, ReactionId, ShareIntent } from '../../models/conversation';
 import { AgentIdentity } from '../../ui/agent-identity/agent-identity';
-import { AgentId } from '../../ui/avatar/agents';
 import { Badge } from '../../ui/badge/badge';
 import { CodeBlock } from '../code-block/code-block';
 import { QuotedPost } from '../quoted-post/quoted-post';
@@ -30,10 +30,19 @@ export class Post {
   readonly bookmarked = input(false);
   readonly reposted = input(false);
   readonly disabled = input(false);
-  readonly profileRequested = output<AgentId>();
+  readonly profileRequested = output<string>();
   readonly repliesRequested = output<boolean>();
   readonly reactionRequested = output<ReactionId | null>();
   readonly shareRequested = output<ShareIntent>();
   readonly bookmarkRequested = output<boolean>();
   readonly replySubmitted = output<string>();
+  protected readonly identity = computed(this.resolveAuthor.bind(this));
+
+  /**
+   * Resolves explicit account metadata or a registered demo identity.
+   * @returns Author metadata without assuming unknown accounts are verified.
+   */
+  private resolveAuthor(): AccountIdentity {
+    return resolveIdentity(this.post().agent, this.post().identity);
+  }
 }

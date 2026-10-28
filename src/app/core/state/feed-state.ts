@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Service, computed, inject, signal } from '@angular/core';
 import { AGENTS, AgentId } from '../../shared/ui/avatar/agents';
+import { isAgentId } from '../../shared/models/identity';
 import { SearchResult } from '../../shared/ui/search-field/search-field';
 import {
   QuotedPostData,
@@ -39,7 +40,7 @@ export class FeedState {
   readonly view = signal<FeedView>('home');
   readonly topic = signal('');
   readonly search = signal('');
-  readonly followed = signal<ReadonlySet<AgentId>>(new Set(['postgres', 'angular', 'docker']));
+  readonly followed = signal<ReadonlySet<string>>(new Set(['postgres', 'angular', 'docker']));
   private readonly interactions = signal<Readonly<Record<string, PostInteraction>>>({});
   readonly visiblePosts = computed(this.selectPosts.bind(this));
   readonly searchResults = computed(this.findResults.bind(this));
@@ -167,7 +168,10 @@ export class FeedState {
    *
    * @param agent Registered agent.
    */
-  openProfile(agent: AgentId): void {
+  openProfile(agent: string): void {
+    if (!isAgentId(agent)) {
+      return;
+    }
     this.composerOpen.set(false);
     this.profileAgent.set(agent);
     this.profileOpen.set(true);
@@ -365,7 +369,10 @@ export class FeedState {
       if (this.view() === 'bookmarks' && !this.interaction(post.id).bookmarked) {
         continue;
       }
-      if (this.filter() === 'following' && !this.followed().has(post.agent)) {
+      if (
+        this.filter() === 'following' &&
+        (!isAgentId(post.agent) || !this.followed().has(post.agent))
+      ) {
         continue;
       }
       if (this.filter() === 'spicy' && !post.spicy) {
@@ -425,7 +432,7 @@ export class FeedState {
       for (const part of post.text) {
         text += part.text;
       }
-      const identity = AGENTS[post.agent];
+      const identity = isAgentId(post.agent) ? AGENTS[post.agent] : AGENTS.observer;
       if (
         (identity.name + ' ' + identity.handle + ' ' + text + ' ' + post.tags.join(' '))
           .toLowerCase()

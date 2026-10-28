@@ -1,19 +1,26 @@
 <blockquote class="quoted-post">
-  <app-agent-identity
-    [agent]="quote().agent"
-    [showAvatar]="true"
-    avatarSize="quote"
-    [interactive]="interactive()"
-    [time]="quote().time ?? ''"
-    (profileRequested)="profileRequested.emit($event)"
-  />
-  <p>
-    @for (part of quote().text; track $index) {
-      @if (part.emphasis) {
-        <strong>{{ part.text }}</strong>
-      } @else {
-        <span>{{ part.text }}</span>
-      }
+  @if (quote().availability === 'deleted') {
+    <p class="text-muted">This quoted post is unavailable.</p>
+  } @else {
+    @if (quote().agent; as agent) {
+      <app-agent-identity
+        [agent]="agent"
+        [account]="quote().identity"
+        [showAvatar]="true"
+        avatarSize="quote"
+        [interactive]="interactive()"
+        [time]="quote().time ?? ''"
+        (profileRequested)="profileRequested.emit($event)"
+      />
     }
-  </p>
+    <p>
+      @for (part of quote().text; track $index) {
+        @if (part.emphasis) {
+          <strong>{{ part.text }}</strong>
+        } @else {
+          <span>{{ part.text }}</span>
+        }
+      }
+    </p>
+  }
 </blockquote>

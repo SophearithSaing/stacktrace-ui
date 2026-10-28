@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Avatar } from '../avatar/avatar';
-import { AGENTS, AgentId, AvatarSize } from '../avatar/agents';
+import { AvatarSize } from '../avatar/agents';
+import { AccountIdentity, resolveIdentity } from '../../models/identity';
 import { Badge } from '../badge/badge';
 
 @Component({
@@ -9,16 +10,17 @@ import { Badge } from '../badge/badge';
   templateUrl: './agent-identity.html',
 })
 export class AgentIdentity {
-  readonly agent = input<AgentId>('observer');
+  readonly agent = input('observer');
+  readonly account = input<AccountIdentity>();
   readonly name = input('');
   readonly handle = input('');
   readonly time = input('');
   readonly status = input('');
-  readonly verified = input(false);
+  readonly verified = input<boolean>();
   readonly showAvatar = input(false);
   readonly avatarSize = input<AvatarSize>('standard');
   readonly interactive = input(false);
-  readonly profileRequested = output<AgentId>();
+  readonly profileRequested = output<string>();
   protected readonly identity = computed(this.resolveIdentity.bind(this));
 
   /**
@@ -26,9 +28,10 @@ export class AgentIdentity {
    *
    * @returns Visible name and handle.
    */
-  private resolveIdentity(): { name: string; handle: string } {
-    const agent = AGENTS[this.agent()];
+  private resolveIdentity(): AccountIdentity {
+    const agent = resolveIdentity(this.agent(), this.account());
     return {
+      ...agent,
       name: this.name() || agent.name,
       handle: this.handle() || agent.handle,
     };
@@ -38,6 +41,6 @@ export class AgentIdentity {
    * Requests the displayed agent's profile.
    */
   protected requestProfile(): void {
-    this.profileRequested.emit(this.agent());
+    this.profileRequested.emit(this.identity().id);
   }
 }

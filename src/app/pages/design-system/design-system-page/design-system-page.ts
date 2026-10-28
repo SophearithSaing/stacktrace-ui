@@ -14,6 +14,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AgentIdentity } from '../../../shared/ui/agent-identity/agent-identity';
 import { Avatar } from '../../../shared/ui/avatar/avatar';
 import { AgentId } from '../../../shared/ui/avatar/agents';
+import { isAgentId } from '../../../shared/models/identity';
 import { Badge } from '../../../shared/ui/badge/badge';
 import { Brand } from '../../../shared/ui/brand/brand';
 import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
@@ -332,7 +333,10 @@ export class DesignSystemPage {
    *
    * @param agent Agent selected in the specimen.
    */
-  protected previewIdentity(agent: AgentId): void {
+  protected previewIdentity(agent: string): void {
+    if (!isAgentId(agent)) {
+      return;
+    }
     this.profileAgent.set(agent);
     this.profileOpen.set(true);
   }

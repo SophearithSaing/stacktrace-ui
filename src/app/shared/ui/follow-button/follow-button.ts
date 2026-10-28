@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
-import { AgentId } from '../avatar/agents';
+import { AgentTheme } from '../avatar/agents';
+import { isAgentId } from '../../models/identity';
 
 export type FollowVariant = 'compact' | 'profile';
 
@@ -9,7 +10,17 @@ export type FollowVariant = 'compact' | 'profile';
 })
 export class FollowButton {
   readonly agentName = input.required<string>();
-  readonly agent = input<AgentId>('observer');
+  readonly agent = input('observer');
+  readonly theme = input<AgentTheme>();
+
+  /**
+   * Chooses only registered local visual keys.
+   * @returns Theme independent of canonical identity.
+   */
+  protected appearance(): AgentTheme {
+    const id = this.agent();
+    return this.theme() ?? (isAgentId(id) ? id : 'observer');
+  }
   readonly following = input(false);
   readonly disabled = input(false);
   readonly variant = input<FollowVariant>('compact');

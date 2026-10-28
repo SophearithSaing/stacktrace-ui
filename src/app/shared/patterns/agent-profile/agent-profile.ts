@@ -1,10 +1,10 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, input, model, output } from '@angular/core';
+import { Component, computed, input, model, output } from '@angular/core';
 import { Dialog } from '../../behaviors/dialog';
 import { AgentProfileData } from '../../models/conversation';
 import { AgentIdentity } from '../../ui/agent-identity/agent-identity';
 import { Avatar } from '../../ui/avatar/avatar';
-import { AGENTS } from '../../ui/avatar/agents';
+import { AccountIdentity, resolveIdentity } from '../../models/identity';
 import { FollowButton } from '../../ui/follow-button/follow-button';
 import { Icon } from '../../ui/icon/icon';
 
@@ -21,5 +21,13 @@ export class AgentProfile {
   readonly open = model(false);
   readonly focusFallback = input<HTMLElement | null>(null);
   readonly followRequested = output<boolean>();
-  protected readonly agents = AGENTS;
+  protected readonly identity = computed(this.resolveIdentity.bind(this));
+
+  /**
+   * Resolves real account metadata or an isolated demo identity.
+   * @returns Identity for the profile being displayed.
+   */
+  private resolveIdentity(): AccountIdentity {
+    return resolveIdentity(this.profile().agent, this.profile().identity);
+  }
 }

@@ -1,4 +1,4 @@
-import { AgentId } from '../ui/avatar/agents';
+import { AccountIdentity } from './identity';
 import { IconName } from '../ui/icon/icon-data';
 
 export type ReactionId = 'useful' | 'agree' | 'brilliant' | 'spicy' | 'ship';
@@ -34,20 +34,28 @@ export interface CodeExample {
 }
 
 export interface QuotedPostData {
-  readonly agent: AgentId;
-  readonly text: readonly TextPart[];
+  readonly id?: string;
+  readonly availability?: 'available' | 'deleted';
+  readonly agent?: string;
+  readonly identity?: AccountIdentity;
+  readonly text?: readonly TextPart[];
   readonly time?: string;
 }
 
 export interface ReplyData {
   readonly id: string;
-  readonly agent: AgentId;
+  readonly agent: string;
+  readonly identity?: AccountIdentity;
+  readonly generated?: boolean;
   readonly text: string;
   readonly time?: string;
 }
 
 export interface PostData extends QuotedPostData {
   readonly id: string;
+  readonly agent: string;
+  readonly text: readonly TextPart[];
+  readonly generated?: boolean;
   readonly status: string;
   readonly tags: readonly string[];
   readonly reactions: ReactionCounts;
@@ -60,7 +68,9 @@ export interface PostData extends QuotedPostData {
 }
 
 export interface AgentProfileData {
-  readonly agent: AgentId;
+  readonly agent: string;
+  readonly identity?: AccountIdentity;
+  readonly canFollow?: boolean;
   readonly role: string;
   readonly bio: string;
   readonly status: string;

@@ -13,7 +13,7 @@
 <ng-template #sheet>
   <section
     class="profile-sheet"
-    [attr.data-agent]="profile().agent"
+    [attr.data-agent]="identity().theme"
     [attr.aria-labelledby]="id() + '-heading'"
   >
     <div class="profile-cover">
@@ -33,22 +33,27 @@
     </div>
     <div class="profile-main">
       <div class="profile-avatar">
-        <app-avatar [agent]="profile().agent" size="profile" [decorative]="true" />
+        <app-avatar
+          [agent]="profile().agent"
+          [account]="identity()"
+          size="profile"
+          [decorative]="true"
+        />
       </div>
       <div class="profile-top">
         <div class="profile-identity">
-          <h3 class="visually-hidden" [id]="id() + '-heading'">
-            {{ agents[profile().agent].name }} profile
-          </h3>
+          <h3 class="visually-hidden" [id]="id() + '-heading'">{{ identity().name }} profile</h3>
           <app-agent-identity
             [agent]="profile().agent"
-            [verified]="profile().agent !== 'observer'"
+            [account]="identity()"
+            [verified]="identity().verified"
           />
         </div>
-        @if (profile().agent !== 'observer') {
+        @if (profile().canFollow ?? profile().agent !== 'observer') {
           <app-follow-button
-            [agentName]="agents[profile().agent].name"
+            [agentName]="identity().name"
             [agent]="profile().agent"
+            [theme]="identity().theme"
             variant="profile"
             [following]="following()"
             (toggleRequested)="followRequested.emit($event)"

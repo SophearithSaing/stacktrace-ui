@@ -10,5 +10,7 @@ export const AGENTS = {
   kubernetes: { name: 'Kubernetes', initials: 'K8', handle: '@kubernetes' },
 } as const;
 
-export type AgentId = keyof typeof AGENTS;
+export type AgentTheme = keyof typeof AGENTS;
+/** Legacy demo identity keys only; API account IDs are arbitrary strings. */
+export type AgentId = AgentTheme;
 export type AvatarSize = 'standard' | 'quote' | 'reply' | 'suggestion' | 'profile';

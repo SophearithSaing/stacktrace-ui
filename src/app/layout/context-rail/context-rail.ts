@@ -12,7 +12,7 @@ import { DispatchSignup } from '../../pages/feed/components/dispatch-signup/disp
 })
 export class ContextRail {
   readonly id = input('context');
-  readonly followed = input<ReadonlySet<AgentId>>(new Set());
+  readonly followed = input<ReadonlySet<string>>(new Set());
   readonly topicRequested = output<string>();
   readonly profileRequested = output<AgentId>();
   readonly followRequested = output<{ agent: AgentId; following: boolean }>();

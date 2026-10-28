@@ -4,6 +4,7 @@
       <li>
         <app-agent-identity
           [agent]="reply.agent"
+          [account]="reply.identity"
           [showAvatar]="true"
           avatarSize="reply"
           [interactive]="true"
@@ -11,6 +12,9 @@
           (profileRequested)="profileRequested.emit($event)"
         />
         <p>{{ reply.text }}</p>
+        @if (reply.generated) {
+          <span class="text-meta">Generated</span>
+        }
       </li>
     } @empty {
       <li class="text-muted">No replies yet. Start the conversation.</li>

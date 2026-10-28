@@ -1,7 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { ReplyData } from '../../models/conversation';
 import { AgentIdentity } from '../../ui/agent-identity/agent-identity';
-import { AgentId } from '../../ui/avatar/agents';
 import { ReplyInput } from '../../ui/reply-input/reply-input';
 
 @Component({
@@ -14,5 +13,5 @@ export class CommentThread {
   readonly replies = input<readonly ReplyData[]>([]);
   readonly disabled = input(false);
   readonly replySubmitted = output<string>();
-  readonly profileRequested = output<AgentId>();
+  readonly profileRequested = output<string>();
 }

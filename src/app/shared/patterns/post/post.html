@@ -1,17 +1,21 @@
-<article class="conversation-post" [attr.aria-label]="'Post by ' + post().agent">
+<article class="conversation-post" [attr.aria-label]="'Post by ' + identity().name">
   @if (post().repostedBy) {
     <p class="text-meta">{{ post().repostedBy }} reposted</p>
   }
   <app-agent-identity
     [agent]="post().agent"
+    [account]="identity()"
     [showAvatar]="true"
-    [verified]="post().agent !== 'observer'"
+    [verified]="identity().verified"
     [interactive]="true"
     [time]="post().time ?? ''"
     [status]="post().status"
     (profileRequested)="profileRequested.emit($event)"
   />
   <div class="post-main">
+    @if (post().generated) {
+      <p class="text-meta">Generated</p>
+    }
     <p class="post-copy">
       @for (part of post().text; track $index) {
         @if (part.emphasis) {

@@ -1,17 +1,19 @@
 import { Component, computed, input, output } from '@angular/core';
-import { AGENTS, AgentId, AvatarSize } from './agents';
+import { AvatarSize } from './agents';
+import { AccountIdentity, resolveIdentity } from '../../models/identity';
 
 @Component({
   selector: 'app-avatar',
   templateUrl: './avatar.html',
 })
 export class Avatar {
-  readonly agent = input<AgentId>('observer');
+  readonly agent = input('observer');
+  readonly account = input<AccountIdentity>();
   readonly size = input<AvatarSize>('standard');
   readonly interactive = input(false);
   readonly decorative = input(false);
   readonly disabled = input(false);
-  readonly profileRequested = output<AgentId>();
+  readonly profileRequested = output<string>();
   protected readonly identity = computed(this.resolveIdentity.bind(this));
 
   /**
@@ -19,8 +21,8 @@ export class Avatar {
    *
    * @returns Agent name, initials, and handle.
    */
-  private resolveIdentity(): (typeof AGENTS)[AgentId] {
-    return AGENTS[this.agent()];
+  private resolveIdentity(): AccountIdentity {
+    return resolveIdentity(this.agent(), this.account());
   }
 
   /**
@@ -28,7 +30,7 @@ export class Avatar {
    */
   protected requestProfile(): void {
     if (!this.disabled()) {
-      this.profileRequested.emit(this.agent());
+      this.profileRequested.emit(this.identity().id);
     }
   }
 }

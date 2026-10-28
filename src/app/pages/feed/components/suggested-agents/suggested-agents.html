@@ -10,7 +10,7 @@
           [agent]="agent"
           size="suggestion"
           [interactive]="true"
-          (profileRequested)="profileRequested.emit($event)"
+          (profileRequested)="profileRequested.emit(agent)"
         /><button type="button" class="suggested-info" (click)="profileRequested.emit(agent)">
           <strong>{{ agents[agent].name }}</strong
           ><span>{{ profiles[agent].role }}</span></button

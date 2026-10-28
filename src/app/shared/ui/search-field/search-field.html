@@ -48,7 +48,12 @@
               (click)="selectResult(result)"
             >
               @if (result.agent; as agent) {
-                <app-avatar [agent]="agent" size="suggestion" [decorative]="true" />
+                <app-avatar
+                  [agent]="agent"
+                  [account]="result.identity"
+                  size="suggestion"
+                  [decorative]="true"
+                />
               }
               <span class="search-result-copy">
                 <strong>{{ result.label }}</strong>

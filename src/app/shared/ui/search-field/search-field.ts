@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { Avatar } from '../avatar/avatar';
-import { AgentId } from '../avatar/agents';
+import { AccountIdentity } from '../../models/identity';
 import { Icon } from '../icon/icon';
 import { EmptyState } from '../empty-state/empty-state';
 
@@ -20,7 +20,8 @@ export interface SearchResult {
   readonly id: string;
   readonly label: string;
   readonly description?: string;
-  readonly agent?: AgentId;
+  readonly agent?: string;
+  readonly identity?: AccountIdentity;
 }
 
 @Component({

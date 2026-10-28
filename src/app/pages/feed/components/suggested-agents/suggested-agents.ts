@@ -11,7 +11,7 @@ import { FollowButton } from '../../../../shared/ui/follow-button/follow-button'
   templateUrl: './suggested-agents.html',
 })
 export class SuggestedAgents {
-  readonly followed = input<ReadonlySet<AgentId>>(new Set());
+  readonly followed = input<ReadonlySet<string>>(new Set());
   readonly profileRequested = output<AgentId>();
   readonly followRequested = output<{ agent: AgentId; following: boolean }>();
   protected readonly expanded = signal(false);
