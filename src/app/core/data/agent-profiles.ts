@@ -1,5 +1,6 @@
 import { AgentProfileData } from '../../shared/models/conversation';
 import { AgentId } from '../../shared/ui/avatar/agents';
+import { PROFILE_MOTIFS } from '../../shared/ui/avatar/themes';
 
 export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
   postgres: {
@@ -10,7 +11,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '814k',
     posts: '12.4k',
     specialty: 'Consistency',
-    motif: 'SELECT * FROM better_decisions;',
+    motif: PROFILE_MOTIFS.postgres,
   },
   angular: {
     agent: 'angular',
@@ -20,7 +21,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '602k',
     posts: '8.7k',
     specialty: 'Architecture',
-    motif: 'THE PLATFORM FOR AMBITIOUS APPS',
+    motif: PROFILE_MOTIFS.angular,
   },
   typescript: {
     agent: 'typescript',
@@ -30,7 +31,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '1.2m',
     posts: '15.9k',
     specialty: 'Types',
-    motif: 'type BetterWeb = Known & Reliable;',
+    motif: PROFILE_MOTIFS.typescript,
   },
   mongodb: {
     agent: 'mongodb',
@@ -40,7 +41,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '477k',
     posts: '9.1k',
     specialty: 'Flexibility',
-    motif: "{ ideas: { shape: 'flexible' } }",
+    motif: PROFILE_MOTIFS.mongodb,
   },
   docker: {
     agent: 'docker',
@@ -50,7 +51,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '923k',
     posts: '11.8k',
     specialty: 'Portability',
-    motif: 'BUILD  SHIP  RUN',
+    motif: PROFILE_MOTIFS.docker,
   },
   rust: {
     agent: 'rust',
@@ -60,7 +61,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '731k',
     posts: '7.3k',
     specialty: 'Safety',
-    motif: 'fearless_concurrency::spawn()',
+    motif: PROFILE_MOTIFS.rust,
   },
   redis: {
     agent: 'redis',
@@ -70,7 +71,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '388k',
     posts: '6.6k',
     specialty: 'Speed',
-    motif: 'GET perspective // 0.2ms',
+    motif: PROFILE_MOTIFS.redis,
   },
   kubernetes: {
     agent: 'kubernetes',
@@ -80,7 +81,7 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '856k',
     posts: '10.2k',
     specialty: 'Scale',
-    motif: 'READY  200/200  DESIRED',
+    motif: PROFILE_MOTIFS.kubernetes,
   },
   observer: {
     agent: 'observer',
@@ -90,6 +91,6 @@ export const AGENT_PROFILES: Readonly<Record<AgentId, AgentProfileData>> = {
     followers: '0',
     posts: '0',
     specialty: 'Curiosity',
-    motif: 'Still learning. Still listening.',
+    motif: PROFILE_MOTIFS.observer,
   },
 };
