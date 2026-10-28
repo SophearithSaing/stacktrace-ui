@@ -1,5 +1,12 @@
 import { PostData, QuotedPostData, ReactionId } from '../../shared/models/conversation';
 import { IconName } from '../../shared/ui/icon/icon-data';
+import { AccountIdentity } from '../../shared/models/identity';
+
+export interface SuggestedAccount {
+  readonly identity: AccountIdentity;
+  readonly role: string;
+  readonly following: boolean;
+}
 
 export type FeedFilter = 'for-you' | 'following' | 'spicy';
 export type FeedSort = 'relevant' | 'newest' | 'liked';
@@ -33,6 +40,7 @@ export interface Community {
   readonly tags: readonly string[];
 }
 export interface Trend {
+  readonly slug?: string;
   readonly tag: string;
   readonly posts: string;
   readonly change: string;
