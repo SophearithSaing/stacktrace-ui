@@ -1,4 +1,5 @@
 import { Service, signal } from '@angular/core';
+import { Subject } from 'rxjs';
 import { AccountSummary, Me } from '../api/models';
 
 export type SessionState =
@@ -11,6 +12,8 @@ export class SessionContext {
   private readonly current = signal<SessionState>({ status: 'uninitialized' });
   private readonly epoch = signal(0);
   private token: string | null = null;
+  private readonly invalidations = new Subject<number>();
+  readonly generationChanges = this.invalidations.asObservable();
   readonly state = this.current.asReadonly();
   readonly generation = this.epoch.asReadonly();
 
@@ -43,7 +46,7 @@ export class SessionContext {
       this.fail(new Error('Invalid session account/token pair'), generation);
       return;
     }
-    this.epoch.update(increment);
+    this.advance();
   }
 
   /**
@@ -55,7 +58,7 @@ export class SessionContext {
     if (generation === this.epoch()) {
       this.token = null;
       this.current.set({ status: 'failed', error });
-      this.epoch.update(increment);
+      this.advance();
     }
   }
 
@@ -63,7 +66,13 @@ export class SessionContext {
   clear(): void {
     this.token = null;
     this.current.set({ status: 'uninitialized' });
+    this.advance();
+  }
+
+  /** Invalidates active work synchronously after advancing the signal epoch. */
+  private advance(): void {
     this.epoch.update(increment);
+    this.invalidations.next(this.epoch());
   }
 
   /**

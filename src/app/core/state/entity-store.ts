@@ -9,6 +9,7 @@ import {
   ReplyPage,
 } from '../api/models';
 import { SessionContext } from '../session/session-context';
+import { ReadBoundary, ReadTicket } from './read-boundary';
 
 type AccountEntity = AccountSummary | Omit<AccountProfile, 'viewer'>;
 type PostEntity = Omit<Post, 'author' | 'viewer' | 'reply_preview'> & {
@@ -25,6 +26,7 @@ export interface EntityMembership {
   readonly kind: 'events' | 'posts' | 'replies';
   readonly ids: readonly string[];
   readonly private: boolean;
+  readonly snippets?: Readonly<Record<string, string>>;
 }
 
 interface EntitySnapshot {
@@ -40,11 +42,12 @@ interface EntitySnapshot {
 @Service()
 export class EntityStore {
   private readonly session = inject(SessionContext);
+  private readonly reads = inject(ReadBoundary);
   private readonly data = linkedSignal(this.resetForSession.bind(this));
 
   /**
-   * Captures the session generation before starting viewer-sensitive work.
-   * @returns Ticket required by every entity/membership commit.
+   * Captures session ownership for commands. Reads use ReadBoundary.capture.
+   * @returns Command session generation, not a read/mutation ticket.
    */
   captureGeneration(): number {
     return this.session.generation();
@@ -56,12 +59,24 @@ export class EntityStore {
    * @param generation Session ticket from request initiation.
    * @returns Whether the commit was accepted.
    */
-  putPost(post: Post, generation: number): boolean {
-    if (generation !== this.session.generation()) {
+  putPost(post: Post, generation: number | ReadTicket): boolean {
+    return this.putPosts([post], generation);
+  }
+
+  /**
+   * Atomically commits complete posts from bookmarks or search results.
+   * @param posts Complete server representations.
+   * @param generation Session generation for commands, or guarded read ticket.
+   * @returns Whether the commit was accepted.
+   */
+  putPosts(posts: readonly Post[], generation: number | ReadTicket): boolean {
+    if (!this.accepts(generation)) {
       return false;
     }
     const next = copySnapshot(this.data());
-    this.ingestPost(next, post);
+    for (const post of posts) {
+      this.ingestPost(next, post);
+    }
     this.data.set(next);
     return true;
   }
@@ -72,8 +87,8 @@ export class EntityStore {
    * @param generation Session ticket from request initiation.
    * @returns Whether the commit was accepted.
    */
-  putEvents(events: readonly FeedEntry[], generation: number): boolean {
-    if (generation !== this.session.generation()) {
+  putEvents(events: readonly FeedEntry[], generation: number | ReadTicket): boolean {
+    if (!this.accepts(generation)) {
       return false;
     }
     const next = copySnapshot(this.data());
@@ -100,8 +115,8 @@ export class EntityStore {
    * @param generation Session ticket from request initiation.
    * @returns Whether the commit was accepted.
    */
-  putProfile(profile: AccountProfile, generation: number): boolean {
-    if (generation !== this.session.generation()) {
+  putProfile(profile: AccountProfile, generation: number | ReadTicket): boolean {
+    if (!this.accepts(generation)) {
       return false;
     }
     const next = copySnapshot(this.data());
@@ -119,8 +134,8 @@ export class EntityStore {
    * @param generation Session ticket from request initiation.
    * @returns Whether the commit was accepted.
    */
-  putReplies(postId: string, page: ReplyPage, generation: number): boolean {
-    if (generation !== this.session.generation()) {
+  putReplies(postId: string, page: ReplyPage, generation: number | ReadTicket): boolean {
+    if (!this.accepts(generation)) {
       return false;
     }
     const next = copySnapshot(this.data());
@@ -142,14 +157,31 @@ export class EntityStore {
    * @param generation Session ticket from request initiation.
    * @returns Whether the commit was accepted.
    */
-  putMembership(key: string, membership: EntityMembership, generation: number): boolean {
-    if (generation !== this.session.generation()) {
+  putMembership(
+    key: string,
+    membership: EntityMembership,
+    generation: number | ReadTicket,
+  ): boolean {
+    if (!this.accepts(generation)) {
       return false;
     }
     const next = copySnapshot(this.data());
-    next.memberships[key] = { ...membership, ids: [...membership.ids] };
+    next.memberships[key] = structuredClone(membership);
     this.data.set(next);
     return true;
+  }
+
+  /**
+   * Releases membership references when their owning collection is replaced.
+   * @param key Collection-owned key.
+   * @param ticket Current read boundary.
+   */
+  removeMembership(key: string, ticket: ReadTicket): void {
+    if (this.accepts(ticket)) {
+      const next = copySnapshot(this.data());
+      delete next.memberships[key];
+      this.data.set(next);
+    }
   }
 
   /**
@@ -243,6 +275,17 @@ export class EntityStore {
     const post = this.post(postId);
     const reposter = reposterId ? this.account(reposterId) : null;
     return post ? { ...event, post, reposter: reposter ?? null } : undefined;
+  }
+
+  /**
+   * Checks command session tickets and stronger read/mutation tickets.
+   * @param ticket Session generation or captured read boundary.
+   * @returns Whether the caller can commit in the current epoch.
+   */
+  private accepts(ticket: number | ReadTicket): boolean {
+    return typeof ticket === 'number'
+      ? ticket === this.session.generation()
+      : this.reads.isCurrent(ticket);
   }
 
   /**
