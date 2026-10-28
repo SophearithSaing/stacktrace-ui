@@ -45,6 +45,26 @@ class FeedbackHarness {
 }
 
 describe('AsyncFeedback', (): void => {
+  it('announces cooldown and keeps explicit retry disabled until its owner permits it', async (): Promise<void> => {
+    const fixture = await render(AsyncFeedback, {
+      state: { ...initial, phase: 'error', error: 'request', coolingDown: true, canRetry: false },
+    });
+    expect(element(fixture, '[role="status"]').textContent).toContain(
+      'Please wait before retrying',
+    );
+    const button = element<HTMLButtonElement>(fixture, 'button');
+    expect(button.disabled).toBe(true);
+    fixture.componentRef.setInput('state', {
+      ...initial,
+      phase: 'error',
+      error: 'request',
+      coolingDown: false,
+      canRetry: true,
+    });
+    fixture.detectChanges();
+    expect(element<HTMLButtonElement>(fixture, 'button')).toBe(button);
+    expect(button.disabled).toBe(false);
+  });
   it.each(['loading', 'refreshing', 'loading-more'] as const)(
     'announces %s politely',
     async (phase): Promise<void> => {

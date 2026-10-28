@@ -19,6 +19,7 @@ import {
 } from './cursor-collection';
 import { EntityStore } from './entity-store';
 import { ReadBoundary, ReadTicket } from './read-boundary';
+import { RetryGate } from './retry-gate';
 
 @Service()
 export class ApiCollections {
@@ -27,6 +28,7 @@ export class ApiCollections {
   private readonly entities = inject(EntityStore);
   private readonly reads = inject(ReadBoundary);
   private readonly session = inject(SessionContext);
+  private readonly retry = inject(RetryGate);
 
   /**
    * Creates an owned chain; the caller must dispose it when its container closes.
@@ -34,7 +36,7 @@ export class ApiCollections {
    * @returns Collection with its first read or valid preview seed started.
    */
   create<P extends CursorResult>(definition: CollectionDefinition<P>): CursorCollection<P> {
-    const collection = new CursorCollection<P>(this.entities, this.reads);
+    const collection = new CursorCollection<P>(this.entities, this.reads, this.retry);
     collection.select(definition);
     return collection;
   }
@@ -121,6 +123,7 @@ export class ApiCollections {
     serializeQuery('bookmarks', { limit });
     return {
       ...this.scope('bookmarks', [limit]),
+      purpose: 'bookmarks',
       kind: 'posts',
       private: true,
       project: postReferences,

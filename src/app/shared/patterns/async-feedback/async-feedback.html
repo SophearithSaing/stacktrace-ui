@@ -11,7 +11,9 @@
         Loading more…
       }
       @default {
-        @if (state().error === 'network') {
+        @if (state().coolingDown) {
+          Please wait before retrying.
+        } @else if (state().error === 'network') {
           Could not connect. Check your connection and retry.
         } @else if (state().error) {
           Could not load this collection. Please retry.
@@ -37,7 +39,7 @@
       {{ state().error ? 'Retry' : 'Refresh' }}
     </button>
   }
-  @if (state().canLoadMore || state().phase === 'loading-more') {
+  @if (state().moreAvailable || state().canLoadMore || state().phase === 'loading-more') {
     <button
       type="button"
       class="button-text"

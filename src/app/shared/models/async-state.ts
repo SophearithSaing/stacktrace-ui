@@ -7,4 +7,6 @@ export interface AsyncViewState {
   readonly error: 'network' | 'request' | null;
   readonly canRetry: boolean;
   readonly canLoadMore: boolean;
+  readonly coolingDown?: boolean;
+  readonly moreAvailable?: boolean;
 }

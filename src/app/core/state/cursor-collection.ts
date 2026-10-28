@@ -1,9 +1,10 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { ApiFailure, cooldownFailure, normalizeFailure } from '../api/failure';
 import { computed, signal } from '@angular/core';
 import { Observable, Subscription, take } from 'rxjs';
 import { AsyncViewState } from '../../shared/models/async-state';
 import { EntityMembership, EntityStore } from './entity-store';
 import { ReadBoundary, ReadTicket } from './read-boundary';
+import { RetryGate } from './retry-gate';
 
 export interface CursorResult {
   readonly next_cursor: string | null;
@@ -19,6 +20,7 @@ export interface CollectionDefinition<P extends CursorResult> {
   readonly session: number;
   readonly kind: EntityMembership['kind'];
   readonly private: boolean;
+  readonly purpose?: EntityMembership['purpose'];
   readonly load: (cursor: string | null) => Observable<P>;
   readonly project: (page: P) => PageReferences;
   readonly commit: (page: P, ticket: ReadTicket) => boolean;
@@ -38,7 +40,7 @@ interface CollectionMeta {
   loaded: boolean;
   nextCursor: string | null;
   stale: boolean;
-  failure: unknown;
+  failure: ApiFailure | null;
   failedMode: 'first' | 'more' | null;
 }
 
@@ -58,12 +60,15 @@ export class CursorCollection<P extends CursorResult> {
    * Creates an inert collection; select starts its first read.
    * @param entities Canonical entities and membership references.
    * @param reads Shared session/mutation boundary.
+   * @param cooldown Global explicit-attempt cooldown.
    */
   constructor(
     private readonly entities: EntityStore,
     private readonly reads: ReadBoundary,
+    private readonly cooldown: RetryGate,
   ) {
     this.invalidations = reads.invalidations.subscribe(this.invalidate.bind(this));
+    this.invalidations.add(reads.refreshes.subscribe(this.refresh.bind(this)));
   }
 
   /**
@@ -86,6 +91,7 @@ export class CursorCollection<P extends CursorResult> {
         kind: definition.kind,
         ids: [],
         private: definition.private,
+        purpose: definition.purpose,
       },
       this.reads.capture(),
     );
@@ -121,7 +127,7 @@ export class CursorCollection<P extends CursorResult> {
    * Exposes the original failure to later normalization without displaying it.
    * @returns Last request failure, or null when resolved.
    */
-  failure(): unknown {
+  failure(): ApiFailure | null {
     return this.meta().failure;
   }
 
@@ -199,6 +205,15 @@ export class CursorCollection<P extends CursorResult> {
     this.cancel();
     const version = this.requestVersion;
     const ticket = this.reads.capture();
+    if (!this.cooldown.canStart()) {
+      this.meta.set({
+        ...previous,
+        phase: 'error',
+        failure: previous.failure ?? cooldownFailure(),
+        failedMode: mode,
+      });
+      return;
+    }
     const cursor = mode === 'more' ? previous.nextCursor : null;
     this.meta.set({
       ...previous,
@@ -280,6 +295,7 @@ export class CursorCollection<P extends CursorResult> {
         {
           kind: selection.kind,
           private: selection.private,
+          purpose: selection.purpose,
           ids,
           ...(projected.snippets
             ? { snippets: { ...previous?.snippets, ...projected.snippets } }
@@ -316,8 +332,13 @@ export class CursorCollection<P extends CursorResult> {
     ticket: ReadTicket,
   ): void {
     if (this.isCurrent(version, ticket)) {
-      this.meta.set({ ...this.meta(), phase: 'error', failure, failedMode: mode });
+      const normalized = normalizeFailure(failure);
+      this.cooldown.note(normalized);
+      this.meta.set({ ...this.meta(), phase: 'error', failure: normalized, failedMode: mode });
       this.active = null;
+      if (normalized.kind === 'unauthenticated') {
+        this.reads.expireSession(ticket);
+      }
     }
   }
 
@@ -342,11 +363,7 @@ export class CursorCollection<P extends CursorResult> {
     const ids = membershipKey ? (this.entities.membership(membershipKey)?.ids ?? []) : [];
     const busy = ['loading', 'refreshing', 'loading-more'].includes(meta.phase);
     const error =
-      meta.failure === null
-        ? null
-        : meta.failure instanceof HttpErrorResponse && meta.failure.status === 0
-          ? 'network'
-          : 'request';
+      meta.failure === null ? null : meta.failure.kind === 'network' ? 'network' : 'request';
     return {
       key: selection?.key ?? null,
       membershipKey,
@@ -358,9 +375,17 @@ export class CursorCollection<P extends CursorResult> {
       exhausted: meta.loaded && meta.nextCursor === null && !meta.stale && !error && !busy,
       stale: meta.stale || (meta.loaded && error !== null),
       error,
-      canRetry: !!selection && !busy && (error !== null || meta.stale),
+      coolingDown: !this.cooldown.ready(),
+      moreAvailable: meta.loaded && meta.nextCursor !== null && !error && !meta.stale,
+      canRetry: !!selection && !busy && this.cooldown.ready() && (error !== null || meta.stale),
       canLoadMore:
-        !!selection && !busy && !error && !meta.stale && meta.loaded && meta.nextCursor !== null,
+        !!selection &&
+        !busy &&
+        this.cooldown.ready() &&
+        !error &&
+        !meta.stale &&
+        meta.loaded &&
+        meta.nextCursor !== null,
     };
   }
 }

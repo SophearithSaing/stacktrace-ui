@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { EMPTY, Observable, Subject, finalize, of } from 'rxjs';
 import { PostPage } from '../api/models';
@@ -7,6 +7,7 @@ import { SessionContext } from '../session/session-context';
 import { CollectionDefinition, CursorCollection, PageReferences } from './cursor-collection';
 import { EntityStore } from './entity-store';
 import { ReadBoundary, ReadTicket } from './read-boundary';
+import { RetryGate } from './retry-gate';
 
 interface PendingRead {
   cursor: string | null;
@@ -25,7 +26,7 @@ describe('CursorCollection', (): void => {
     entities = TestBed.inject(EntityStore);
     reads = TestBed.inject(ReadBoundary);
     session = TestBed.inject(SessionContext);
-    collection = new CursorCollection<PostPage>(entities, reads);
+    collection = new CursorCollection<PostPage>(entities, reads, TestBed.inject(RetryGate));
     pending = [];
   });
   afterEach((): void => collection.dispose());
@@ -94,13 +95,54 @@ describe('CursorCollection', (): void => {
       ids: [post.id],
       nextCursor: 'continuation',
     });
-    expect(collection.failure()).toBe(failure);
+    expect(collection.failure()?.kind).toBe('network');
     expect(pending).toHaveLength(2);
     collection.retry();
     expect(pending[2].cursor).toBe('continuation');
     pending[2].source.next({ items: [post, { ...post, id: 'next' }], next_cursor: null });
     expect(collection.state().ids).toEqual([post.id, 'next']);
     expect(collection.state().error).toBeNull();
+  });
+
+  it('respects Retry-After on read retries without timer-triggered network attempts', (): void => {
+    vi.useFakeTimers();
+    try {
+      collection.select(definition());
+      pending[0].source.error(
+        new HttpErrorResponse({
+          status: 503,
+          headers: new HttpHeaders({ 'Retry-After': '2', 'X-Request-ID': 'retry-request' }),
+        }),
+      );
+      expect(collection.state()).toMatchObject({ coolingDown: true, canRetry: false });
+      collection.retry();
+      collection.refresh();
+      expect(collection.failure()?.requestIds.header).toBe('retry-request');
+      expect(pending).toHaveLength(1);
+      vi.advanceTimersByTime(1999);
+      expect(collection.state().canRetry).toBe(false);
+      vi.advanceTimersByTime(1);
+      expect(collection.state().canRetry).toBe(true);
+      expect(pending).toHaveLength(1);
+      collection.retry();
+      expect(pending[1].cursor).toBeNull();
+      pending[1].source.next({ items: [], next_cursor: null });
+      expect(collection.state().empty).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps forbidden reads distinct from authenticated session expiry', (): void => {
+    session.accept({ account, csrf_token: 'token' }, session.begin());
+    collection.select(definition());
+    pending[0].source.error(new HttpErrorResponse({ status: 403 }));
+    expect(session.state().status).toBe('authenticated');
+    expect(collection.failure()?.kind).toBe('forbidden');
+    collection.retry();
+    pending[1].source.error(new HttpErrorResponse({ status: 401 }));
+    expect(session.csrfToken()).toBeNull();
+    expect(collection.state()).toMatchObject({ phase: 'idle', ids: [], key: null });
   });
 
   it('never treats an initial HTTP failure as empty success', (): void => {
@@ -200,7 +242,7 @@ describe('CursorCollection', (): void => {
   });
 
   it('isolates independent owners of the same selection and releases references on disposal', (): void => {
-    const other = new CursorCollection<PostPage>(entities, reads);
+    const other = new CursorCollection<PostPage>(entities, reads, TestBed.inject(RetryGate));
     try {
       collection.select(definition());
       other.select(definition());
