@@ -9,6 +9,14 @@ import {
 
 export const MAX_JSON_BYTES = 64 * 1024;
 
+/** Distinguishes the local wire-size limit without relying on error-message text. */
+export class JsonBodyTooLargeError extends RangeError {
+  /** Creates a payload-size failure containing no submitted content. */
+  constructor() {
+    super('JSON body exceeds 64 KiB');
+  }
+}
+
 export interface RequestBodies {
   register: RegisterRequest;
   login: LoginRequest;
@@ -104,7 +112,7 @@ export function serializeBody<K extends keyof RequestBodies>(
   }
   const json = JSON.stringify(body);
   if (new TextEncoder().encode(json).byteLength > MAX_JSON_BYTES) {
-    throw new RangeError('JSON body exceeds 64 KiB');
+    throw new JsonBodyTooLargeError();
   }
   return json;
 }
