@@ -88,7 +88,7 @@ conservative invalidation requires fresh public reads as well and prevents stale
 viewer representations from crossing epochs. It owns no network subscriptions;
 obsolete results are rejected at commit time. Cancellation, cursor chains and
 refresh belong to the collection boundary below; command-specific ordering and
-reconciliation remain the next checkpoint's command boundary.
+reconciliation belong to the guarded command boundary.
 Neither the store nor adapters are connected to existing product/demo providers
 at this checkpoint.
 
@@ -118,12 +118,64 @@ synchronous: active reads cancel and rows/cursors clear before another epoch can
 commit. Confirmed commands must call `ReadBoundary.confirmMutation(commandSession)`
 **before** writing confirmed entities; stale command sessions are rejected. This
 globally cancels older reads and marks collections stale without dropping rows,
-invalidates their cursors, and requires a new first-page read. Failed commands must
-not advance this boundary. Command execution/reconciliation will wire this seam in
-checkpoint 5; there is no product cutover or automatic write replay here.
+invalidates their cursors, and requires a new first-page read. `Mutations` and
+`CommandExecutor` wire this seam before confirmed reconciliation, then broadcast
+`refreshCollections` so active owners read fresh first pages after canonical state
+is updated. Recoverable failures do not advance it. A definitive 410 on a known
+post path also invalidates reads and tombstones that post, but remains a failed
+command outcome, never fake write success. Creation 410 responses do not guess
+which post is unavailable. There is no product cutover or automatic write replay.
 
 `AsyncViewState`/`AsyncFeedback` provide transport-independent loading/empty/error/
 retry affordances. Network errors (HTTP status zero) do not pretend to prove browser
-offline status. Raw failures remain in core for later error normalization. Drafts
+offline status. Normalized failures remain in core for action/diagnostic use. Drafts
 are caller-owned and untouched by collection reads. This is neither snapshot
 consistency nor live-stream support; mutable reacted ordering remains best effort.
+
+## Failures, cooldown and diagnostics
+
+`normalizeFailure` maps HTTP status/code semantics to `ApiFailure` without keeping
+the original body, URL, headers or server message. Only documented request fields
+receive bounded plain-text 422 messages; non-JSON and unexpected failures use fixed
+safe feedback. Both body/header request IDs are retained when bounded and
+diagnostic-safe. Diagnostics must use `failureDiagnostic`, never log a raw request,
+error, normalized field messages, password, cookie, token or private draft.
+
+`RetryGate` conservatively shares rate/service cooldown across API operations and
+session changes (rate limits can be IP-scoped). It respects supplied Retry-After
+seconds/HTTP dates, including 503 hints; missing/invalid 429 hints use a one-second
+fallback. Long waits use bounded timer chunks without shortening the delay. Timers
+only enable explicit retry, never send requests or replay writes. Collection retry,
+refresh, load-more and command execution all enforce the gate. Non-collection read
+consumers must normalize failures and report them to the same gate during cutover.
+Current authenticated 401 failures clear the session; 403 does not mean logout.
+
+## Guarded command reconciliation
+
+Product callers will use `Mutations`, not raw `CommandClient`. Each logical attempt
+captures serialization/key and session ownership at construction. Resubscription
+is an explicit retry of those exact bytes/key, never rebound to another viewer.
+One post lock covers reactions/bookmarks/reposts/replies/deletion, since different
+actions return overlapping full snapshots. Follow writes lock the account; post
+creation has one composer channel even if duplicate clicks supply different keys.
+Competing pending actions are blocked, not queued or simulated. There is no optimism
+or count arithmetic. A view unsubscribing detaches observation, while the service
+owns the uncertain write and resource lock until completion/session invalidation.
+
+Confirmed posts/profiles update every canonical projection. Bookmark/suggestion
+memberships are explicitly classified, never inferred from arbitrary key strings.
+Reposts retain server event identity/time and remove only the current viewer's
+obsolete event. Replies use the returned total, never preview length or a local
+increment. Deleted posts remove events/replies/memberships/snippets and strip every
+cached quote author/body; session-local tombstones prevent overlapping older command
+snapshots from restoring that content. Reply deletion returns no total, so its
+parent representation is invalidated for a fresh read instead of guessing counts.
+Active collections refresh first pages after reconciliation. The future product
+facade also observes refresh notifications for active non-collection detail/profile/
+discovery reads, using read tickets for their canonical commits.
+
+Caller-owned drafts change only when their UI chooses to handle confirmation; all
+failed/blocked/stale outcomes preserve them. Network failure cannot prove whether a
+server write committed; caller-owned creation keys and exact payloads remain the
+retry contract. No client-side scheme promises ordering of unseen backend work or
+snapshot consistency beyond the documented server API.

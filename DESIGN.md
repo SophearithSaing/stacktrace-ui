@@ -196,6 +196,9 @@ content politely, distinguishes an empty success from failure, and emits only
 feedback component. Retry/load-more controls stay disabled during work; the
 component never starts requests, retries automatically or displays raw failures.
 It composes existing `EmptyState`, text and button primitives without local CSS.
+Optional `coolingDown`/`moreAvailable` view fields keep retry/load-more controls
+stable and disabled during API cooldown. Waiting is announced politely; timers may
+enable controls but never submit content or automatically retry an operation.
 `[appMenu]` supports two-way open state and viewport-aware positioning;
 `dialog[appDialog]` shares native modal dismissal and focus management.
 Set `[appDialogFocusFallback]` to a focusable region when closing can remove
