@@ -11,8 +11,10 @@ export interface ReadTicket {
 export class ReadBoundary {
   private readonly session = inject(SessionContext);
   private readonly mutations = new Subject<number>();
+  private readonly refreshRequests = new Subject<number>();
   private revision = 0;
   readonly invalidations = merge(this.session.generationChanges, this.mutations);
+  readonly refreshes = this.refreshRequests.asObservable();
 
   /**
    * Captures both boundaries before starting a read.
@@ -44,5 +46,25 @@ export class ReadBoundary {
     this.revision += 1;
     this.mutations.next(this.revision);
     return true;
+  }
+
+  /**
+   * Requests fresh first pages only after confirmed entities have been reconciled.
+   * @param generation Command's current session ownership.
+   */
+  refreshCollections(generation: number): void {
+    if (generation === this.session.generation()) {
+      this.refreshRequests.next(generation);
+    }
+  }
+
+  /**
+   * Clears an expired authenticated viewer only for a current 401 read.
+   * @param ticket Failed read ownership, never a previous viewer's ticket.
+   */
+  expireSession(ticket: ReadTicket): void {
+    if (this.isCurrent(ticket) && this.session.state().status === 'authenticated') {
+      this.session.clear();
+    }
   }
 }
