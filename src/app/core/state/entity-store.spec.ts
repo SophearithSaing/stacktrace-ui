@@ -13,6 +13,62 @@ describe('EntityStore', (): void => {
     session = TestBed.inject(SessionContext);
   });
 
+  it('reconciles private membership without removing unrelated post projections', (): void => {
+    const generation = store.captureGeneration();
+    store.putPost(post, generation);
+    store.putMembership(
+      'bookmarks',
+      { kind: 'posts', purpose: 'bookmarks', ids: [post.id], private: true },
+      generation,
+    );
+    store.putMembership('search', { kind: 'posts', ids: [post.id], private: false }, generation);
+    store.reconcilePost(
+      { ...post, viewer: { reaction: 'ship', bookmarked: false, reposted: false } },
+      generation,
+    );
+    expect(store.membership('bookmarks')?.ids).toEqual([]);
+    expect(store.membership('search')?.ids).toEqual([post.id]);
+    expect(store.post(post.id)?.viewer?.reaction).toBe('ship');
+  });
+
+  it('retains deletion tombstones and strips quoted content from later complete snapshots', (): void => {
+    const generation = store.captureGeneration();
+    store.putPost(post, generation);
+    store.deletePost(post.id, generation);
+    store.putPost(post, generation);
+    store.putPost(
+      {
+        ...post,
+        id: 'quoting',
+        quote: { id: post.id, availability: 'available', author: account, body: 'deleted body' },
+      },
+      generation,
+    );
+    expect(store.post(post.id)).toBeUndefined();
+    expect(store.post('quoting')?.quote).toEqual({ id: post.id, availability: 'deleted' });
+    session.clear();
+    store.putPost(post, store.captureGeneration());
+    expect(store.post(post.id)).toBeDefined();
+  });
+
+  it('rejects stale command reconciliation after viewer replacement', (): void => {
+    const generation = store.captureGeneration();
+    session.clear();
+    store.reconcilePost(post, generation);
+    store.reconcileReply({ reply, reply_total: 999 }, generation);
+    store.reconcileRepost(
+      { post, repost_entry_id: 'old-event', repost_occurred_at: post.created_at },
+      account,
+      generation,
+    );
+    store.deletePost(post.id, generation);
+    expect(store.post(post.id)).toBeUndefined();
+    expect(store.reply(reply.id)).toBeUndefined();
+    expect(store.event('old-event')).toBeUndefined();
+    store.putPost(post, store.captureGeneration());
+    expect(store.post(post.id)).toBeDefined();
+  });
+
   it('treats inherited names as missing IDs and accepts opaque membership keys', (): void => {
     expect(store.account('constructor')).toBeUndefined();
     expect(store.post('toString')).toBeUndefined();
