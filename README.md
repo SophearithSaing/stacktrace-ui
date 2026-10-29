@@ -51,8 +51,13 @@ attached only to authenticated API writes. Never use an authentication bypass.
 
 Mocked HTTP/routed tests establish client behavior, not real cookie/CORS or
 backend persistence correctness. Those checks require a running backend and test
-session. No backend endpoint/credentials or connected browser were available for
-the API cutover validation.
+session. Final review passed 368 tests, a production build, changed-file formatting,
+and a Chromium smoke check against a temporary mock API: bookmark rehydration after
+reload, Unicode post creation/focus, safe literal content, and documentation
+isolation. Product frames had no page overflow at 12 widths from 320–1440px.
+No real backend endpoint/credentials were supplied. Full keyboard, visual contrast,
+and real cookie/CORS/persistence deployment checks remain outstanding; browser
+automation did not deliver native key events during this review.
 
 Validation uses Angular/Vitest and structural axe-core scans. Browser review
 should cover full axe scans, keyboard interactions, and
