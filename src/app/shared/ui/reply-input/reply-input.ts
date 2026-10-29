@@ -1,4 +1,14 @@
-import { Component, computed, input, model, output, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  input,
+  model,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormField, SchemaPath, disabled, form, required } from '@angular/forms/signals';
 
 @Component({
@@ -11,8 +21,13 @@ export class ReplyInput {
   readonly label = input('Write a reply');
   readonly placeholder = input('Join the conversation…');
   readonly disabled = input(false);
+  readonly managed = input(false);
+  readonly error = input('');
   readonly value = model('');
   readonly submitted = output<string>();
+  private readonly field = viewChild<ElementRef<HTMLInputElement>>('replyField');
+  private readonly waiting = signal(false);
+  private readonly focusEffect = afterRenderEffect(this.restoreDraftFocus.bind(this));
   protected readonly attempted = signal(false);
   protected readonly replyForm = form(this.value, this.configureSchema.bind(this));
   protected readonly showError = computed(this.hasError.bind(this));
@@ -34,6 +49,16 @@ export class ReplyInput {
    */
   private isDisabled(): boolean {
     return this.disabled();
+  }
+
+  /** Keeps managed reply focus with its existing field after pending/cooldown ends. */
+  private restoreDraftFocus(): void {
+    const waiting = this.waiting();
+    const disabled = this.disabled();
+    if (waiting && !disabled) {
+      this.field()?.nativeElement.focus();
+      this.waiting.set(false);
+    }
   }
 
   /**
@@ -68,8 +93,13 @@ export class ReplyInput {
     if (!text) {
       return;
     }
-    this.replyForm().reset('');
+    if (!this.managed()) {
+      this.replyForm().reset('');
+    }
     this.attempted.set(false);
-    this.submitted.emit(text);
+    if (this.managed()) {
+      this.waiting.set(true);
+    }
+    this.submitted.emit(this.managed() ? this.value() : text);
   }
 }

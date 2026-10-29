@@ -26,7 +26,7 @@
         type="button"
         [attr.role]="variant() === 'menu' ? 'menuitem' : null"
         [attr.tabindex]="variant() === 'menu' ? -1 : 0"
-        [disabled]="disabled()"
+        [disabled]="disabled() || writeDisabled()"
         (click)="request('repost')"
       >
         <app-icon name="repeat" size="small" /><span>{{
@@ -37,7 +37,7 @@
         type="button"
         [attr.role]="variant() === 'menu' ? 'menuitem' : null"
         [attr.tabindex]="variant() === 'menu' ? -1 : 0"
-        [disabled]="disabled()"
+        [disabled]="disabled() || writeDisabled()"
         (click)="request('quote')"
       >
         <app-icon name="quote" size="small" /><span>Quote post</span>

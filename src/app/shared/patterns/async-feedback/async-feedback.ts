@@ -9,6 +9,7 @@ import { EmptyState } from '../../ui/empty-state/empty-state';
 })
 export class AsyncFeedback {
   readonly state = input.required<AsyncViewState>();
+  readonly message = input('');
   readonly retryRequested = output<void>();
   readonly moreRequested = output<void>();
 }

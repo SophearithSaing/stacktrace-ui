@@ -1,5 +1,17 @@
-import { Component, computed, input, linkedSignal, model, output } from '@angular/core';
-import { FormField, SchemaPath, form, maxLength, required } from '@angular/forms/signals';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  input,
+  linkedSignal,
+  model,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { FormField, SchemaPath, disabled, form, maxLength, required } from '@angular/forms/signals';
+import { AccountIdentity } from '../../../../shared/models/identity';
 import { BroadcastDraft } from '../../../../core/models/feed';
 import { Dialog } from '../../../../shared/behaviors/dialog';
 import { QuotedPostData } from '../../../../shared/models/conversation';
@@ -17,8 +29,19 @@ export class PostComposer {
   readonly open = model(false);
   readonly value = model('');
   readonly quote = input<QuotedPostData | null>(null);
+  readonly remote = input(false);
+  readonly account = input<AccountIdentity | null>(null);
+  readonly disabled = input(false);
+  readonly pending = input(false);
+  readonly serverError = input('');
+  readonly fieldError = input('');
+  readonly focusFallback = input<HTMLElement | null>(null);
   readonly published = output<BroadcastDraft>();
+  readonly quoteRemoved = output<void>();
   readonly closed = output<void>();
+  private readonly field = viewChild<ElementRef<HTMLTextAreaElement>>('draftField');
+  private readonly waiting = signal(false);
+  private readonly focusEffect = afterRenderEffect(this.restoreFailedDraftFocus.bind(this));
   protected readonly attempted = linkedSignal(this.resetAttempt.bind(this));
   protected readonly textForm = form(this.value, this.configure.bind(this));
   protected readonly remaining = computed(this.charactersRemaining.bind(this));
@@ -41,7 +64,34 @@ export class PostComposer {
    */
   private configure(path: SchemaPath<string>): void {
     required(path);
-    maxLength(path, 320);
+    maxLength(path, this.nativeLimit.bind(this));
+    disabled(path, this.isDisabled.bind(this));
+  }
+
+  /** @returns Whether editing/submission is currently blocked by the container. */
+  private isDisabled(): boolean {
+    return this.disabled() || this.pending();
+  }
+
+  /** @returns The legacy demo's native limit, or no UTF-16 cap for Unicode API text. */
+  private nativeLimit(): number | undefined {
+    return this.remote() ? undefined : 320;
+  }
+
+  /** Restores the existing draft field after a recoverable remote attempt settles. */
+  private restoreFailedDraftFocus(): void {
+    const waiting = this.waiting();
+    const open = this.open();
+    const disabled = this.isDisabled();
+    if (!waiting) {
+      return;
+    }
+    if (!open) {
+      this.waiting.set(false);
+    } else if (!disabled) {
+      this.field()?.nativeElement.focus();
+      this.waiting.set(false);
+    }
   }
 
   /**
@@ -50,7 +100,7 @@ export class PostComposer {
    * @returns Signed remaining character count.
    */
   private charactersRemaining(): number {
-    return 320 - this.value().length;
+    return 320 - (this.remote() ? [...this.value()].length : this.value().length);
   }
 
   /**
@@ -72,10 +122,19 @@ export class PostComposer {
    */
   protected send(event: Event): void {
     event.preventDefault();
+    if (this.isDisabled()) {
+      return;
+    }
     this.attempted.set(true);
     if (this.error()) {
       return;
     }
-    this.published.emit({ text: this.value().trim(), quote: this.quote() ?? undefined });
+    if (this.remote()) {
+      this.waiting.set(true);
+    }
+    this.published.emit({
+      text: this.remote() ? this.value() : this.value().trim(),
+      quote: this.quote() ?? undefined,
+    });
   }
 }

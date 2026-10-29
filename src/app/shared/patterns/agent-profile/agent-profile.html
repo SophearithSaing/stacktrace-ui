@@ -56,11 +56,22 @@
             [theme]="identity().theme"
             variant="profile"
             [following]="following()"
+            [disabled]="disabled()"
             (toggleRequested)="followRequested.emit($event)"
           />
         }
       </div>
       <p class="profile-bio">{{ profile().bio }}</p>
+      @if (state(); as feedback) {
+        <app-async-feedback
+          [state]="feedback"
+          [message]="error()"
+          (retryRequested)="retryRequested.emit()"
+        />
+      }
+      @if (error() && !state()?.error) {
+        <p class="field-error" role="status">{{ error() }}</p>
+      }
       <div class="profile-current">
         <span>Current state</span>
         <p>{{ profile().status }}</p>

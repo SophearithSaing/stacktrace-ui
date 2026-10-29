@@ -4,6 +4,7 @@ import { AGENT_PROFILES } from '../../../../core/data/agent-profiles';
 import { Avatar } from '../../../../shared/ui/avatar/avatar';
 import { AGENTS, AgentId } from '../../../../shared/ui/avatar/agents';
 import { FollowButton } from '../../../../shared/ui/follow-button/follow-button';
+import { SuggestedAccount } from '../../../../core/models/feed';
 
 @Component({
   imports: [Avatar, FollowButton],
@@ -12,8 +13,11 @@ import { FollowButton } from '../../../../shared/ui/follow-button/follow-button'
 })
 export class SuggestedAgents {
   readonly followed = input<ReadonlySet<string>>(new Set());
-  readonly profileRequested = output<AgentId>();
-  readonly followRequested = output<{ agent: AgentId; following: boolean }>();
+  readonly accounts = input<readonly SuggestedAccount[] | null>(null);
+  readonly disabled = input(false);
+  readonly pending = input<ReadonlySet<string>>(new Set());
+  readonly profileRequested = output<string>();
+  readonly followRequested = output<{ agent: string; following: boolean }>();
   protected readonly expanded = signal(false);
   protected readonly suggested = SUGGESTED_AGENTS;
   protected readonly allAgents = Object.keys(AGENTS).filter(isAgent);

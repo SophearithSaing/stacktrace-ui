@@ -12,5 +12,5 @@ export type BrandVariant = 'desktop' | 'mobile' | 'footer';
 export class Brand {
   readonly product = input<BrandProduct>('stacktrace');
   readonly variant = input<BrandVariant>('desktop');
-  readonly href = input('/');
+  readonly href = input<string | null>('/');
 }

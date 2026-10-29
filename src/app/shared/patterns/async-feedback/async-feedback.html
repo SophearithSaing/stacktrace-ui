@@ -13,6 +13,8 @@
       @default {
         @if (state().coolingDown) {
           Please wait before retrying.
+        } @else if (message() && state().error) {
+          {{ message() }}
         } @else if (state().error === 'network') {
           Could not connect. Check your connection and retry.
         } @else if (state().error) {
@@ -29,24 +31,20 @@
   @if (state().empty) {
     <app-empty-state title="No results yet." />
   }
-  @if (state().error || state().stale) {
+  @if (
+    state().error ||
+    state().stale ||
+    state().moreAvailable ||
+    state().canLoadMore ||
+    state().phase === 'loading-more'
+  ) {
     <button
       type="button"
       class="button-text"
-      [disabled]="!state().canRetry"
-      (click)="retryRequested.emit()"
+      [disabled]="state().error || state().stale ? !state().canRetry : !state().canLoadMore"
+      (click)="state().error || state().stale ? retryRequested.emit() : moreRequested.emit()"
     >
-      {{ state().error ? 'Retry' : 'Refresh' }}
-    </button>
-  }
-  @if (state().moreAvailable || state().canLoadMore || state().phase === 'loading-more') {
-    <button
-      type="button"
-      class="button-text"
-      [disabled]="!state().canLoadMore"
-      (click)="moreRequested.emit()"
-    >
-      Load more
+      {{ state().error ? 'Retry' : state().stale ? 'Refresh' : 'Load more' }}
     </button>
   }
 </div>

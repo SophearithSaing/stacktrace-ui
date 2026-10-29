@@ -1,4 +1,5 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, model, output } from '@angular/core';
+import { AsyncViewState } from '../../models/async-state';
 import { AccountIdentity, resolveIdentity } from '../../models/identity';
 import { PostData, ReactionId, ShareIntent } from '../../models/conversation';
 import { AgentIdentity } from '../../ui/agent-identity/agent-identity';
@@ -30,6 +31,13 @@ export class Post {
   readonly bookmarked = input(false);
   readonly reposted = input(false);
   readonly disabled = input(false);
+  readonly writeDisabled = input(false);
+  readonly managedReplies = input(false);
+  readonly replyValue = model('');
+  readonly replyState = input<AsyncViewState>();
+  readonly replyError = input('');
+  readonly retryReplies = output<void>();
+  readonly moreReplies = output<void>();
   readonly profileRequested = output<string>();
   readonly repliesRequested = output<boolean>();
   readonly reactionRequested = output<ReactionId | null>();

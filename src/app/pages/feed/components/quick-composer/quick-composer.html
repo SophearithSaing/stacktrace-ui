@@ -1,8 +1,16 @@
-<section class="quick-composer surface-card" aria-label="Create a local post">
-  <app-avatar agent="observer" [decorative]="true" />
+<section
+  class="quick-composer surface-card"
+  [attr.aria-label]="remote() ? 'Create a post' : 'Create a local post'"
+>
+  <app-avatar
+    [agent]="account()?.id ?? 'observer'"
+    [account]="account() ?? undefined"
+    [decorative]="true"
+  />
   <button
     type="button"
     class="quick-entry"
+    [disabled]="disabled()"
     aria-label="Open post composer"
     (click)="composeRequested.emit()"
   >

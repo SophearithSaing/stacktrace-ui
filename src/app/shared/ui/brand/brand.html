@@ -1,6 +1,7 @@
 <a
   class="brand"
   [routerLink]="href()"
+  [attr.role]="href() === null ? 'img' : null"
   [attr.data-product]="product()"
   [attr.data-variant]="variant()"
   [attr.aria-label]="product() === 'signal' ? 'Signal design system' : 'Stacktrace home'"

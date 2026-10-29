@@ -15,6 +15,8 @@ import { Avatar } from '../avatar/avatar';
 import { AccountIdentity } from '../../models/identity';
 import { Icon } from '../icon/icon';
 import { EmptyState } from '../empty-state/empty-state';
+import { AsyncViewState } from '../../models/async-state';
+import { AsyncFeedback } from '../../patterns/async-feedback/async-feedback';
 
 export interface SearchResult {
   readonly id: string;
@@ -25,7 +27,7 @@ export interface SearchResult {
 }
 
 @Component({
-  imports: [Avatar, Icon, EmptyState],
+  imports: [Avatar, Icon, EmptyState, AsyncFeedback],
   selector: 'app-search-field',
   templateUrl: './search-field.html',
   host: {
@@ -40,6 +42,10 @@ export class SearchField {
   readonly results = input<readonly SearchResult[]>([]);
   readonly disabled = input(false);
   readonly loading = input(false);
+  readonly state = input<AsyncViewState>();
+  readonly hint = input('');
+  readonly retryRequested = output<void>();
+  readonly moreRequested = output<void>();
   readonly shortcut = input(false);
   readonly value = model('');
   readonly resultSelected = output<SearchResult>();

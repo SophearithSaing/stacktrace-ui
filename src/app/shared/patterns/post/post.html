@@ -46,6 +46,7 @@
       [bookmarked]="bookmarked()"
       [reposted]="reposted()"
       [disabled]="disabled()"
+      [writeDisabled]="writeDisabled()"
       (repliesRequested)="repliesRequested.emit($event)"
       (reactionRequested)="reactionRequested.emit($event)"
       (shareRequested)="shareRequested.emit($event)"
@@ -55,7 +56,13 @@
       <app-comment-thread
         [id]="id() + '-replies'"
         [replies]="post().replies"
-        [disabled]="disabled()"
+        [disabled]="disabled() || writeDisabled()"
+        [managed]="managedReplies()"
+        [(value)]="replyValue"
+        [state]="replyState()"
+        [error]="replyError()"
+        (retryRequested)="retryReplies.emit()"
+        (moreRequested)="moreReplies.emit()"
         (replySubmitted)="replySubmitted.emit($event)"
         (profileRequested)="profileRequested.emit($event)"
       />

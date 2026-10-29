@@ -5,11 +5,13 @@ import { AgentProfileData } from '../../models/conversation';
 import { AgentIdentity } from '../../ui/agent-identity/agent-identity';
 import { Avatar } from '../../ui/avatar/avatar';
 import { AccountIdentity, resolveIdentity } from '../../models/identity';
+import { AsyncViewState } from '../../models/async-state';
+import { AsyncFeedback } from '../async-feedback/async-feedback';
 import { FollowButton } from '../../ui/follow-button/follow-button';
 import { Icon } from '../../ui/icon/icon';
 
 @Component({
-  imports: [NgTemplateOutlet, Dialog, AgentIdentity, Avatar, FollowButton, Icon],
+  imports: [NgTemplateOutlet, Dialog, AgentIdentity, Avatar, FollowButton, Icon, AsyncFeedback],
   selector: 'app-agent-profile',
   templateUrl: './agent-profile.html',
 })
@@ -17,6 +19,10 @@ export class AgentProfile {
   readonly id = input.required<string>();
   readonly profile = input.required<AgentProfileData>();
   readonly following = input(false);
+  readonly disabled = input(false);
+  readonly state = input<AsyncViewState>();
+  readonly error = input('');
+  readonly retryRequested = output<void>();
   readonly variant = input<'inline' | 'dialog'>('inline');
   readonly open = model(false);
   readonly focusFallback = input<HTMLElement | null>(null);

@@ -13,6 +13,7 @@ export class ShareMenu {
   readonly reposted = input(false);
   readonly reposts = input(0);
   readonly disabled = input(false);
+  readonly writeDisabled = input(false);
   readonly variant = input<'menu' | 'inline'>('menu');
   readonly intent = output<ShareIntent>();
   protected readonly open = signal(false);
@@ -23,7 +24,10 @@ export class ShareMenu {
    * @param intent Operation to be handled by the container.
    */
   protected request(intent: ShareIntent): void {
-    if (!this.disabled()) {
+    if (
+      !this.disabled() &&
+      !(this.writeDisabled() && (intent === 'repost' || intent === 'quote'))
+    ) {
       this.intent.emit(intent);
     }
   }

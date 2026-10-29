@@ -18,6 +18,7 @@ export class PostActions {
   readonly bookmarked = input(false);
   readonly reposted = input(false);
   readonly disabled = input(false);
+  readonly writeDisabled = input(false);
   readonly repliesRequested = output<boolean>();
   readonly reactionRequested = output<ReactionId | null>();
   readonly shareRequested = output<ShareIntent>();

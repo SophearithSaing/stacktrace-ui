@@ -17,12 +17,24 @@
         }
       </li>
     } @empty {
-      <li class="text-muted">No replies yet. Start the conversation.</li>
+      @if (!state() || state()?.empty) {
+        <li class="text-muted">No replies yet. Start the conversation.</li>
+      }
     }
   </ul>
+  @if (state(); as feedback) {
+    <app-async-feedback
+      [state]="feedback"
+      (retryRequested)="retryRequested.emit()"
+      (moreRequested)="moreRequested.emit()"
+    />
+  }
   <app-reply-input
     [id]="id() + '-input'"
     [disabled]="disabled()"
+    [managed]="managed()"
+    [error]="error()"
+    [(value)]="value"
     (submitted)="replySubmitted.emit($event)"
   />
 </section>

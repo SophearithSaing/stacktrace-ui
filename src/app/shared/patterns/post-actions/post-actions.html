@@ -13,7 +13,7 @@
   <app-reaction-picker
     [id]="id() + '-react'"
     [selected]="selectedReaction()"
-    [disabled]="disabled()"
+    [disabled]="disabled() || writeDisabled()"
     (selectionRequested)="reactionRequested.emit($event)"
   />
   <app-share-menu
@@ -21,12 +21,13 @@
     [reposted]="reposted()"
     [reposts]="reposts()"
     [disabled]="disabled()"
+    [writeDisabled]="writeDisabled()"
     (intent)="shareRequested.emit($event)"
   />
   <button
     type="button"
     class="action-button bookmark-action"
-    [disabled]="disabled()"
+    [disabled]="disabled() || writeDisabled()"
     [attr.aria-pressed]="bookmarked()"
     aria-label="Bookmark post"
     (click)="bookmarkRequested.emit(!bookmarked())"

@@ -10,6 +10,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 })
 export class TrendingList {
   readonly id = input('trending');
+  readonly demo = input(true);
   readonly trends = input<readonly Trend[]>(TRENDS);
   readonly topicRequested = output<string>();
   protected readonly expanded = signal(false);

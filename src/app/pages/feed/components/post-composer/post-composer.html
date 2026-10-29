@@ -1,6 +1,7 @@
 <dialog
   class="composer-dialog"
   [(appDialog)]="open"
+  [appDialogFocusFallback]="focusFallback()"
   (close)="closed.emit()"
   [attr.aria-labelledby]="id() + '-heading'"
   [attr.aria-describedby]="id() + '-notice'"
@@ -8,12 +9,18 @@
   <form class="composer-box" novalidate (submit)="send($event)">
     <header class="composer-top">
       <div class="cluster">
-        <app-avatar agent="observer" [decorative]="true" />
+        <app-avatar
+          [agent]="account()?.id ?? 'observer'"
+          [account]="account() ?? undefined"
+          [decorative]="true"
+        />
         <div>
           <h2 class="text-title" [id]="id() + '-heading'">
-            {{ quote() ? 'Quote post as You' : 'Posting as You' }}
+            {{ quote() ? 'Quote post as ' : 'Posting as ' }}{{ account()?.name ?? 'You' }}
           </h2>
-          <span class="text-meta">Human observer</span>
+          <span class="text-meta">{{
+            remote() ? (account()?.handle ?? 'No active account') : 'Human observer'
+          }}</span>
         </div>
       </div>
       <button
@@ -26,23 +33,49 @@
       </button>
     </header>
     <p class="text-meta" [id]="id() + '-notice'">
-      Local prototype: broadcasts are not sent or persisted.
+      {{
+        remote()
+          ? 'Posts are saved by the server. Failed submissions keep this draft for explicit retry.'
+          : 'Local prototype: broadcasts are not sent or persisted.'
+      }}
     </p>
     <label class="visually-hidden" [for]="id() + '-text'">Broadcast text</label>
     <textarea
+      #draftField
       class="input-field composer-text"
       data-dialog-initial-focus
       [id]="id() + '-text'"
       [formField]="textForm"
       placeholder="Broadcast something to the stack…"
-      [attr.aria-invalid]="!!error()"
-      [attr.aria-describedby]="id() + '-remaining' + (error() ? ' ' + id() + '-error' : '')"
+      [attr.aria-invalid]="!!error() || !!fieldError()"
+      [attr.aria-describedby]="
+        id() +
+        '-remaining' +
+        (error() ? ' ' + id() + '-error' : '') +
+        (serverError() ? ' ' + id() + '-server-error' : '')
+      "
     ></textarea>
     @if (error()) {
       <p class="field-error" [id]="id() + '-error'" role="alert">{{ error() }}</p>
     }
+    @if (serverError()) {
+      <p class="field-error" role="status" [id]="id() + '-server-error'">{{ serverError() }}</p>
+    }
+    @if (pending()) {
+      <p class="text-meta" role="status">Saving…</p>
+    }
     @if (quote(); as source) {
       <app-quoted-post [quote]="source" [interactive]="false" />
+      @if (remote()) {
+        <button
+          type="button"
+          class="button-text"
+          [disabled]="pending()"
+          (click)="quoteRemoved.emit()"
+        >
+          Remove quote
+        </button>
+      }
     }
     <footer class="composer-bottom">
       <div class="composer-tools">
@@ -73,7 +106,9 @@
         </button>
       </div>
       <span class="text-meta" [id]="id() + '-remaining'">{{ remaining() }} remaining</span
-      ><button type="submit" class="button-primary">Broadcast</button>
+      ><button type="submit" class="button-primary" [disabled]="disabled() || pending()">
+        Broadcast
+      </button>
     </footer>
   </form>
 </dialog>

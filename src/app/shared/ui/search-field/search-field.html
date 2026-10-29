@@ -65,7 +65,16 @@
           }
         }
       </div>
-      @if (loading()) {
+      @if (state(); as feedback) {
+        <app-async-feedback
+          [state]="feedback"
+          (retryRequested)="retryRequested.emit()"
+          (moreRequested)="moreRequested.emit()"
+        />
+        @if (hint()) {
+          <p class="text-meta" role="status">{{ hint() }}</p>
+        }
+      } @else if (loading()) {
         <p class="text-meta" role="status">Searching…</p>
       } @else if (!results().length) {
         <div role="status">

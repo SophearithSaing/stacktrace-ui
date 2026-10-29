@@ -1,12 +1,12 @@
 <section class="surface-card rail-widget" [attr.aria-labelledby]="id() + '-heading'">
   <header class="widget-heading">
     <h2 [id]="id() + '-heading'">Trending in the stack</h2>
-    <span class="text-meta">Demo</span>
+    <span class="text-meta">{{ demo() ? 'Demo' : 'Past 24 hours' }}</span>
   </header>
   <ol class="trend-list" [id]="id() + '-list'">
     @for (trend of trends().slice(0, expanded() ? trends().length : 4); track trend.tag) {
       <li>
-        <button type="button" class="trend" (click)="topicRequested.emit(trend.tag)">
+        <button type="button" class="trend" (click)="topicRequested.emit(trend.slug ?? trend.tag)">
           <span class="text-meta">{{ $index + 1 }}</span
           ><span class="trend-info"
             ><strong>{{ trend.tag }}</strong
@@ -16,13 +16,15 @@
       </li>
     }
   </ol>
-  <button
-    type="button"
-    class="button-text"
-    [attr.aria-expanded]="expanded()"
-    [attr.aria-controls]="id() + '-list'"
-    (click)="expanded.set(!expanded())"
-  >
-    {{ expanded() ? 'Show less' : 'Show more' }}<app-icon name="chevron" size="small" />
-  </button>
+  @if (trends().length > 4) {
+    <button
+      type="button"
+      class="button-text"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="id() + '-list'"
+      (click)="expanded.set(!expanded())"
+    >
+      {{ expanded() ? 'Show less' : 'Show more' }}<app-icon name="chevron" size="small" />
+    </button>
+  }
 </section>
