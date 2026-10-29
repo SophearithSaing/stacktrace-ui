@@ -22,23 +22,43 @@ browser APIs to share a specimen link, with honest failure feedback.
 Section fragments (for example,
 `/design-system#controls`) support direct links and browser history.
 
-Open `/` for the complete Stacktrace prototype: responsive navigation, search,
-filtering/sorting, reactions, replies, reposts, bookmarks, quote broadcasts,
-profiles, and shared following. Explore and Communities are in-feed views;
-notifications and attachments are explicitly unavailable/demo functionality.
-Email signup validates only—it never subscribes or stores an address.
+Open `/` for the API-backed product: feed filters/sorts/topics, remote search,
+profiles, replies, bookmarks, text/quote broadcasts, reactions, reposts and
+following. `/#post-<UUID>` resolves a canonical post even outside the loaded feed.
+Successful mutations use server-returned entities/counts; fresh loads read the
+server again. Empty/error responses never fall back to demonstration content.
+Drafts and retry attempts are memory-only, retained on recoverable failures and
+cleared on viewer/session changes. Unchanged explicit creation retries reuse
+their exact payload and idempotency key; writes are never automatically replayed.
 
-Product changes are local and reset when leaving the shell or reloading.
-`/#post-typescript-result` demonstrates a fixture post link; links to newly
-created local broadcasts cannot survive reload. Documentation has separate
-state, including its embedded live shell and composer specimens.
+Optional cookie-session restoration distinguishes anonymous success from failure.
+Public reading remains available anonymously; writes, Following and private
+bookmarks require a real session. Authentication screens are not implemented.
+Notifications, community filtering, attachments, presence/pulse metrics and
+newsletter subscriptions are unavailable in the product. They remain clearly
+local specimens where documented. Documentation and its embedded shell use
+separate local state and generate no API traffic.
 
-Validation uses Angular/Vitest and structural axe-core scans. Browser checks
-use Playwright with Chrome for full axe scans, keyboard interactions, and
+## API deployment
+
+By default requests target `/api/v1` at the UI origin. Serve/proxy that path to
+the backend; no backend host or port is guessed. For another origin, configure
+the `API_BASE_URL` injection token in application configuration with an absolute
+HTTP(S) origin (no path/query/credentials). See `src/app/core/api/README.md`.
+Cross-origin deployments require exact-UI-origin credentialed CORS and compatible
+cookie policy. Cookies are browser-managed; CSRF tokens stay in memory and are
+attached only to authenticated API writes. Never use an authentication bypass.
+
+Mocked HTTP/routed tests establish client behavior, not real cookie/CORS or
+backend persistence correctness. Those checks require a running backend and test
+session. No backend endpoint/credentials or connected browser were available for
+the API cutover validation.
+
+Validation uses Angular/Vitest and structural axe-core scans. Browser review
+should cover full axe scans, keyboard interactions, and
 overflow checks at product (1180, 980, 720, and 420px) and documentation
 breakpoints (900, 680, and 390px), including the compact 981–999px range.
-Playwright is currently temporary validation tooling, not a configured
-repository e2e target. Test widths on both sides of each breakpoint, plus
+There is no configured repository e2e target. Test widths on both sides of each breakpoint, plus
 320px; the scrollable layout table must not overflow the whole page.
 
 ## Code scaffolding

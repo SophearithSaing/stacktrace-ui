@@ -55,8 +55,8 @@ names registered visuals. Unknown/null API appearances use the existing neutral
 observer theme, never server-supplied CSS. Local profile motifs are registered in
 `shared/ui/avatar/themes.ts`, not inferred from server text or canonical IDs.
 Deleted quotes render an unavailable placeholder with no author/content actions;
-plain API text and code render literally. These shared capabilities do not yet
-switch the product or documentation to remote state.
+plain API text and code render literally. The product uses remote state;
+documentation remains isolated local demonstration state.
 
 Accessible production variants: `--text-secondary: #58655C` for small text,
 `--focus-color: #3D6815` for focus/status, and observer background `#58655C`
@@ -204,9 +204,11 @@ enable controls but never submit content or automatically retry an operation.
 Set `[appDialogFocusFallback]` to a focusable region when closing can remove
 the opener; product profiles fall back to the conversation region.
 Consumers own counts/relationships and browser sharing results. Documentation
-state is local and never persisted; broadcasts and quotes stay in the prototype.
+state is local and never persisted; its broadcasts and quotes stay in the demo.
+Product containers instead own server-authoritative counts/relationships,
+session-bound drafts, pending locks, field feedback and explicit retry actions.
 
-### Product layout — `src/app/layout/` (6 available)
+### Product layout — `src/app/layout/` (7 available)
 
 | Component        | Intended usage                                                       |
 | ---------------- | -------------------------------------------------------------------- |
@@ -215,7 +217,8 @@ state is local and never persisted; broadcasts and quotes stay in the prototype.
 | `Sidebar`        | Brand, navigation, creation, communities, and supporting footer.     |
 | `Topbar`         | Search, alerts, observer identity, and mobile branding.              |
 | `ContextRail`    | Compose the feed's supporting widgets without duplicate card styles. |
-| `AppShell`       | Responsive product regions and the routed reading column.            |
+| `AppShell`       | Isolated local documentation/specimen shell.                         |
+| `ProductShell`   | API-backed responsive regions and routed reading column.             |
 
 ### Pages and local components — `src/app/pages/` (9 available)
 
@@ -236,13 +239,16 @@ state is local and never persisted; broadcasts and quotes stay in the prototype.
 duplicating the inner section ID on its Angular host. The page owns isolated
 demo state; fragments and scroll position drive the visible contents marker.
 
-`AppShell` lazy-loads at `/` with a child `FeedPage`. Its `FeedState` instance
-coordinates all product interactions and modal/feedback state; each documentation
-shell gets a separate instance. `variant="specimen"` uses in-flow regions and
-projected content instead of fixed chrome or a routed page. Use a unique `id`.
+`ProductShell` lazy-loads at `/` with a child `FeedPage`. Its scoped `ProductState`
+coordinates session restoration, canonical reads/writes, drafts and modal feedback.
+`AppShell` retains separate local `FeedState` for documentation only.
+`variant="specimen"` uses in-flow regions and projected content instead of fixed
+chrome or a routed page. Specimen branding cannot navigate into the product.
+Use a unique `id`.
 
 `MainNavigation`, `CommunityList`, `Sidebar`, and `Topbar` emit in-page intents;
-Explore, Bookmarks, and Communities are feed views, not invented destination pages.
+Explore and Bookmarks are feed views, not invented destination pages. Product
+community/notification controls are unavailable; do not invent API behavior.
 `QuickComposer` requests creation and labels unavailable attachments.
 `PostComposer` requires `id`, supports two-way `open`/`value` and a typed `quote`,
 and emits validated `published` drafts plus native `closed` notifications.
@@ -250,10 +256,18 @@ and emits validated `published` drafts plus native `closed` notifications.
 receives shared `followed` relationships and emits follow/profile intents.
 `DispatchSignup` validates email without subscribing, storing, or sending it.
 
-Product models/fixtures/state live in `core/`. Following uses actual relationships;
-newest uses timestamps; most-reacted uses aggregate counts. Source fixtures remain
-immutable. Reloading or leaving the shell resets local changes. Fixture post links
-use `#post-<id>`; new local broadcasts cannot survive reload or link sharing.
+Product models/state live in `core/`; fixtures are only demo/test inputs. Existing
+feed choices map to documented server queries (most-liked UI maps to reacted).
+Canonical post IDs differ from feed event IDs; every appearance resolves current
+server entities. Product `#post-<UUID>` links fetch missing posts remotely.
+Fresh loads read persisted server state, not local snapshots. Anonymous users can
+read public content/replies but cannot write or fetch private bookmarks/Following.
+Failed session restoration is not anonymous success. Session transitions clear
+drafts, modal context and obsolete reads. Network/validation failures preserve
+drafts and exact logical retry keys; pending controls never fabricate success.
+Trends/suggestions use server metadata and nullable changes without fixture
+fallback; pulse/presence/signup remain demo-only. API deployment and unavailable
+live validation are documented in `README.md`.
 
 ### Native controls and style primitives
 

@@ -20,14 +20,14 @@ it again. Body semantics and safe field errors remain server-authoritative.
   bounded quote previews must not replace complete posts. Reads and commands
   use session/request generations before committing server-confirmed state.
 - Product facade in `core/state`: coordinates session, clients, adapters and
-  entities. `AppShell` provides the product scope; `FeedPage` consumes feed,
+  entities. `ProductShell` provides the product scope; `FeedPage` consumes feed,
   bookmarks, replies and commands; `Topbar` consumes search/session/profile;
   `ContextRail` consumes discovery. Shared components receive presentation
   inputs and emit intents, never importing clients or product stores.
 - Documentation retains explicit local `FeedState` providers and fixtures in
   `DesignSystemPage` and its embedded specimen shell. Registering HttpClient
-  does not start requests. API product cutover is a later checkpoint; the
-  existing product remains fixture-backed until then.
+  does not start requests. `AppShell` is documentation-only; product startup
+  begins only when its routed `ProductShell` mounts.
 
 ## Deployment
 
@@ -89,8 +89,7 @@ viewer representations from crossing epochs. It owns no network subscriptions;
 obsolete results are rejected at commit time. Cancellation, cursor chains and
 refresh belong to the collection boundary below; command-specific ordering and
 reconciliation belong to the guarded command boundary.
-Neither the store nor adapters are connected to existing product/demo providers
-at this checkpoint.
+The product facade uses the store/adapters; documentation retains local state.
 
 ## Collection ownership and read safety
 
@@ -124,7 +123,7 @@ invalidates their cursors, and requires a new first-page read. `Mutations` and
 is updated. Recoverable failures do not advance it. A definitive 410 on a known
 post path also invalidates reads and tombstones that post, but remains a failed
 command outcome, never fake write success. Creation 410 responses do not guess
-which post is unavailable. There is no product cutover or automatic write replay.
+which post is unavailable. There is no automatic write replay.
 
 `AsyncViewState`/`AsyncFeedback` provide transport-independent loading/empty/error/
 retry affordances. Network errors (HTTP status zero) do not pretend to prove browser
@@ -152,7 +151,7 @@ Current authenticated 401 failures clear the session; 403 does not mean logout.
 
 ## Guarded command reconciliation
 
-Product callers will use `Mutations`, not raw `CommandClient`. Each logical attempt
+Product callers use `Mutations`, not raw `CommandClient`. Each logical attempt
 captures serialization/key and session ownership at construction. Resubscription
 is an explicit retry of those exact bytes/key, never rebound to another viewer.
 One post lock covers reactions/bookmarks/reposts/replies/deletion, since different
@@ -170,7 +169,7 @@ increment. Deleted posts remove events/replies/memberships/snippets and strip ev
 cached quote author/body; session-local tombstones prevent overlapping older command
 snapshots from restoring that content. Reply deletion returns no total, so its
 parent representation is invalidated for a fresh read instead of guessing counts.
-Active collections refresh first pages after reconciliation. The future product
+Active collections refresh first pages after reconciliation. The product
 facade also observes refresh notifications for active non-collection detail/profile/
 discovery reads, using read tickets for their canonical commits.
 
