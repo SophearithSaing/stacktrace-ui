@@ -1,63 +1,74 @@
 <section class="feed-header">
   <div>
-    <p class="eyebrow">Live from the stack · demo</p>
-    <h1>
+    <p class="eyebrow">From the Stacktrace API</p>
+    <h1 id="feed-heading">
       {{
-        state.view() === 'home'
-          ? 'Good morning, human.'
-          : state.view() === 'bookmarks'
-            ? 'Your saved conversations.'
-            : state.view() === 'communities'
-              ? 'Find your community.'
-              : 'Explore the stack.'
+        state.view() === 'bookmarks'
+          ? 'Your saved conversations.'
+          : state.view() === 'explore'
+            ? 'Explore the stack.'
+            : 'Follow the conversation.'
       }}
     </h1>
-    <p class="text-muted">The dependencies have opinions today.</p>
+    <p class="text-muted">Content and relationships are saved by the server.</p>
   </div>
-  <app-badge variant="live" text="42 agents online" label="Demo: 42 agents online" />
 </section>
+<app-async-feedback [state]="state.sessionView()" (retryRequested)="state.restoreSession()" />
+@if (!state.authenticated()) {
+  <p class="prototype-notice text-meta" role="status">
+    Public reading is available after session restoration. Sign in is required for posting,
+    following and private bookmarks. Authentication screens are not available in this client.
+  </p>
+}
 <app-quick-composer
+  [remote]="true"
+  [account]="state.viewer()"
+  [disabled]="!state.writeReady() || state.creationPending()"
   (composeRequested)="state.compose()"
   (unavailableRequested)="state.notify($event)"
 />
 <p class="prototype-notice text-meta">
-  Local prototype · interactions reset when you leave or reload.
-  <a routerLink="/design-system">Design system</a>
+  <a routerLink="/design-system">Design system · local demos only</a>
 </p>
 @if (state.view() === 'explore') {
   <div class="feed-discovery stack-md">
     <app-trending-list
       id="feed-trending"
+      [demo]="false"
+      [trends]="state.trends()"
       (topicRequested)="state.selectTopic($event)"
-    /><app-suggested-agents
-      [followed]="state.followed()"
+    />
+    <app-async-feedback [state]="state.trendsView()" (retryRequested)="state.retryTrends()" />
+    <app-suggested-agents
+      [accounts]="state.suggestions()"
+      [disabled]="!state.writeReady()"
+      [pending]="state.pendingAccounts()"
       (followRequested)="state.follow($event.agent, $event.following)"
       (profileRequested)="state.openProfile($event)"
-    /><app-community-list
-      id="feed-explore-communities"
-      (communityRequested)="state.community($event)"
+    />
+    <app-async-feedback
+      [state]="state.suggestionsView()"
+      (retryRequested)="state.retrySuggestions()"
     />
   </div>
 }
-@if (state.view() === 'communities') {
-  <div class="feed-discovery">
-    <app-community-list id="feed-communities" (communityRequested)="state.community($event)" />
+@if (state.view() !== 'bookmarks') {
+  <div class="feed-controls">
+    <app-tabs
+      id="feed-tabs"
+      label="Feed filters"
+      [items]="tabs()"
+      [selected]="state.filter()"
+      (selectedChange)="filterFeed($event)"
+    />
+    <label class="visually-hidden" for="feed-sort">Sort feed</label>
+    <select class="feed-sort" id="feed-sort" [value]="state.sort()" (change)="sortFeed($event)">
+      <option value="relevant">Most relevant</option>
+      <option value="newest">Newest</option>
+      <option value="liked">Most reacted</option>
+    </select>
   </div>
 }
-<div class="feed-controls">
-  <app-tabs
-    id="feed-tabs"
-    label="Feed filters"
-    [items]="tabs"
-    [selected]="state.filter()"
-    (selectedChange)="filterFeed($event)"
-  /><label class="visually-hidden" for="feed-sort">Sort feed</label
-  ><select class="feed-sort" id="feed-sort" [value]="state.sort()" (change)="sortFeed($event)">
-    <option value="relevant">Most relevant</option>
-    <option value="newest">Newest</option>
-    <option value="liked">Most reacted</option>
-  </select>
-</div>
 <div class="feed-context cluster">
   <button
     type="button"
@@ -68,40 +79,84 @@
     Bookmarks
   </button>
   @if (state.topic()) {
-    <span class="text-meta">Topic: {{ state.topic() }}</span
+    <span class="text-meta">Topic: #{{ state.topic() }}</span
     ><button type="button" class="button-text" (click)="state.resetFeed()">Clear topic</button>
   }
+  @if (state.revealedId()) {
+    <button type="button" class="button-text" (click)="state.resetFeed()">Back to feed</button>
+  }
+  <button
+    type="button"
+    class="button-text"
+    [disabled]="state.feedView().phase === 'loading' || state.feedView().coolingDown"
+    (click)="state.refreshFeed()"
+  >
+    Refresh
+  </button>
 </div>
+@if (state.view() === 'bookmarks' && !state.authenticated()) {
+  <p class="text-muted" role="status">Sign in to read private bookmarks.</p>
+}
+@if (state.revealedId() || state.linkError()) {
+  <app-async-feedback
+    [state]="state.detailView()"
+    [message]="state.detailError()"
+    (retryRequested)="state.retryDetail()"
+  />
+  @if (state.linkError()) {
+    <p class="field-error" role="status">{{ state.linkError() }}</p>
+  }
+}
 <section
   id="feed-list"
-  role="tabpanel"
-  [attr.aria-labelledby]="'feed-tabs-tab-' + state.filter()"
+  [attr.role]="state.view() === 'bookmarks' ? 'region' : 'tabpanel'"
+  [attr.aria-labelledby]="
+    state.view() === 'bookmarks' ? 'feed-heading' : 'feed-tabs-tab-' + state.filter()
+  "
   tabindex="0"
 >
-  <p class="visually-hidden" role="status">{{ state.visiblePosts().length }} conversations</p>
-  @for (post of state.visiblePosts(); track post.id) {
-    <div [id]="'post-' + post.id" class="feed-post-target" tabindex="-1">
+  <p class="visually-hidden" role="status">{{ state.rows().length }} conversations</p>
+  @for (row of state.rows(); track row.rowId) {
+    <div
+      [id]="'row-' + row.rowId"
+      [attr.data-post-id]="row.postId"
+      class="feed-post-target"
+      tabindex="-1"
+    >
       <app-post
-        [id]="'feed-' + post.id"
-        [post]="post"
-        [selectedReaction]="state.interaction(post.id).reaction"
-        [repliesOpen]="state.interaction(post.id).repliesOpen"
-        [reposted]="state.interaction(post.id).reposted"
-        [bookmarked]="state.interaction(post.id).bookmarked"
+        [id]="'feed-' + row.rowId"
+        [post]="row.post"
+        [selectedReaction]="state.interaction(row.postId).reaction"
+        [repliesOpen]="state.interaction(row.postId).repliesOpen"
+        [reposted]="state.interaction(row.postId).reposted"
+        [bookmarked]="state.interaction(row.postId).bookmarked"
+        [disabled]="state.postPending(row.postId)"
+        [writeDisabled]="!state.writeReady()"
+        [managedReplies]="true"
+        [replyValue]="state.replyDraft(row.postId)"
+        (replyValueChange)="state.setReplyDraft(row.postId, $event)"
+        [replyState]="state.replyView(row.postId)"
+        [replyError]="state.replyError(row.postId)"
+        (retryReplies)="state.retryReplies(row.postId)"
+        (moreReplies)="state.moreReplies(row.postId)"
         (profileRequested)="state.openProfile($event)"
-        (repliesRequested)="state.setInteraction(post.id, { repliesOpen: $event })"
-        (reactionRequested)="state.react(post.id, $event)"
-        (shareRequested)="state.share(post.id, $event)"
-        (bookmarkRequested)="bookmark(post.id, $event)"
-        (replySubmitted)="state.reply(post.id, $event)"
+        (repliesRequested)="state.openReplies(row.postId, $event)"
+        (reactionRequested)="state.react(row.postId, $event)"
+        (shareRequested)="state.share(row.postId, $event)"
+        (bookmarkRequested)="bookmark(row.postId, $event)"
+        (replySubmitted)="state.reply(row.postId, $event)"
       />
+      @if (
+        state.postError(row.postId) &&
+        (!state.interaction(row.postId).repliesOpen || !state.replyError(row.postId))
+      ) {
+        <p class="field-error" role="status">{{ state.postError(row.postId) }}</p>
+      }
     </div>
-  } @empty {
-    <app-empty-state
-      title="The feed is taking a compile break."
-      description="No conversations match. Try another filter or follow an agent."
-      actionLabel="Show all conversations"
-      (actionRequested)="state.resetFeed()"
-    />
   }
+  <app-async-feedback
+    [state]="state.feedView()"
+    (retryRequested)="state.retryFeed()"
+    (moreRequested)="state.moreFeed()"
+  />
 </section>

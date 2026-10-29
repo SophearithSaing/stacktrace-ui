@@ -1,44 +1,43 @@
-import { Component, ElementRef, afterRenderEffect, inject } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FeedState } from '../../../core/state/feed-state';
+import { ProductState } from '../../../core/state/product-state';
 import { FeedFilter, FeedSort } from '../../../core/models/feed';
 import { Post } from '../../../shared/patterns/post/post';
 import { Tabs, TabItem } from '../../../shared/ui/tabs/tabs';
-import { EmptyState } from '../../../shared/ui/empty-state/empty-state';
-import { Badge } from '../../../shared/ui/badge/badge';
+import { AsyncFeedback } from '../../../shared/patterns/async-feedback/async-feedback';
 import { QuickComposer } from '../components/quick-composer/quick-composer';
 import { TrendingList } from '../components/trending-list/trending-list';
 import { SuggestedAgents } from '../components/suggested-agents/suggested-agents';
-import { CommunityList } from '../../../layout/community-list/community-list';
 
 @Component({
-  imports: [
-    Post,
-    Tabs,
-    EmptyState,
-    Badge,
-    QuickComposer,
-    TrendingList,
-    SuggestedAgents,
-    CommunityList,
-    RouterLink,
-  ],
+  imports: [Post, Tabs, AsyncFeedback, QuickComposer, TrendingList, SuggestedAgents, RouterLink],
   selector: 'app-feed-page',
   templateUrl: './feed-page.html',
 })
 export class FeedPage {
-  protected readonly state = inject(FeedState);
-  protected readonly tabs: readonly TabItem[] = [
-    { id: 'for-you', label: 'For you', panelId: 'feed-list' },
-    { id: 'following', label: 'Following', panelId: 'feed-list' },
-    { id: 'spicy', label: 'Spicy takes', panelId: 'feed-list' },
-  ];
+  protected readonly state = inject(ProductState);
+  protected readonly tabs = computed(this.feedTabs.bind(this));
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly fragment = toSignal(inject(ActivatedRoute).fragment);
   private lastFragment: string | null | undefined;
   private readonly linkEffect = afterRenderEffect(this.revealFragment.bind(this));
   private readonly focusEffect = afterRenderEffect(this.focusRequestedPost.bind(this));
+  private pendingBookmarkFocus: Element | null = null;
+
+  /** @returns Existing feed choices with authentic anonymous gating. */
+  private feedTabs(): readonly TabItem[] {
+    return [
+      { id: 'for-you', label: 'For you', panelId: 'feed-list' },
+      {
+        id: 'following',
+        label: 'Following',
+        panelId: 'feed-list',
+        disabled: !this.state.authenticated(),
+      },
+      { id: 'spicy', label: 'Spicy takes', panelId: 'feed-list' },
+    ];
+  }
 
   /**
    * Validates native sorting values before updating shared state.
@@ -64,21 +63,20 @@ export class FeedPage {
   }
 
   /**
-   * Updates local saved state and keeps focus in a shrinking bookmark list.
+   * Requests remote saved state, moving focus only after confirmed row removal.
    *
    * @param id Post identifier.
    * @param saved Requested bookmark state.
    */
   protected bookmark(id: string, saved: boolean): void {
-    this.state.setInteraction(id, { bookmarked: saved });
-    this.state.notify(saved ? 'Saved to local bookmarks.' : 'Removed from local bookmarks.');
     if (!saved && this.state.view() === 'bookmarks') {
-      this.host.nativeElement.closest<HTMLElement>('.product-main')?.focus();
+      this.pendingBookmarkFocus = this.host.nativeElement.ownerDocument.activeElement;
     }
+    this.state.bookmark(id, saved);
   }
 
   /**
-   * Restores public fixture links after a lazy route has rendered.
+   * Resolves canonical public post links independently of the loaded feed.
    */
   private revealFragment(): void {
     const fragment = this.fragment();
@@ -95,6 +93,11 @@ export class FeedPage {
    * Focuses and scrolls a requested post only once its view exists.
    */
   private focusRequestedPost(): void {
+    this.state.rows();
+    if (this.pendingBookmarkFocus && !this.pendingBookmarkFocus.isConnected) {
+      this.host.nativeElement.closest<HTMLElement>('.product-main')?.focus();
+      this.pendingBookmarkFocus = null;
+    }
     this.state.modalRevision();
     const id = this.state.focusedPost();
     if (this.state.composerOpen() || this.state.profileOpen()) {
@@ -103,7 +106,13 @@ export class FeedPage {
     if (!id) {
       return;
     }
-    const target = this.host.nativeElement.querySelector<HTMLElement>('[id="post-' + id + '"]');
+    let target: HTMLElement | null = null;
+    for (const row of this.host.nativeElement.querySelectorAll<HTMLElement>('.feed-post-target')) {
+      if (row.dataset['postId'] === id) {
+        target = row;
+        break;
+      }
+    }
     if (target) {
       target.focus({ preventScroll: true });
       target.scrollIntoView?.({ block: 'center' });

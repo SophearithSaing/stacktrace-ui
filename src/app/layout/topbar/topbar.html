@@ -1,6 +1,10 @@
 <header class="product-topbar">
   <div class="mobile-brand">
-    <app-brand variant="mobile" href="/" (click)="navigationRequested.emit('home')" />
+    <app-brand
+      variant="mobile"
+      [href]="localNavigation() ? null : '/'"
+      (click)="navigationRequested.emit('home')"
+    />
   </div>
   <app-search-field
     [id]="id()"
@@ -9,26 +13,58 @@
     [(value)]="query"
     [results]="results()"
     [shortcut]="shortcut()"
+    [state]="searchState()"
+    [loading]="searchState()?.phase === 'loading'"
+    [hint]="
+      !demo() &&
+      query().trim().length > 0 &&
+      results().length === 0 &&
+      searchState()?.phase === 'idle'
+        ? 'Enter 2–100 characters to search.'
+        : ''
+    "
+    (retryRequested)="retrySearch.emit()"
+    (moreRequested)="moreSearch.emit()"
     (resultSelected)="resultSelected.emit($event)"
   />
   <div class="topbar-actions">
     <button
       type="button"
       class="button-icon notification-button"
-      aria-label="Notifications, 3 demo alerts"
+      [attr.aria-label]="demo() ? 'Notifications, 3 demo alerts' : 'Notifications unavailable'"
+      [disabled]="!demo()"
       (click)="navigationRequested.emit('notifications')"
     >
-      <app-icon name="bell" /><span class="notification-dot" aria-hidden="true"></span>
+      <app-icon name="bell" />
+      @if (demo()) {
+        <span class="notification-dot" aria-hidden="true"></span>
+      }
     </button>
     <button
       type="button"
       class="profile-switcher"
-      aria-label="Open your observer profile"
+      [attr.aria-label]="
+        demo()
+          ? 'Open your observer profile'
+          : account()
+            ? 'Open your account profile'
+            : 'No active account'
+      "
+      [disabled]="!demo() && !account()"
       (click)="navigationRequested.emit('profile')"
     >
-      <app-avatar agent="observer" [decorative]="true" /><span
-        ><strong>You</strong><small>Observer</small></span
-      >
+      @if (demo()) {
+        <app-avatar agent="observer" [decorative]="true" /><span
+          ><strong>You</strong><small>Observer</small></span
+        >
+      } @else if (account(); as viewer) {
+        <app-avatar [agent]="viewer.id" [account]="viewer" [decorative]="true" /><span
+          ><strong>{{ viewer.name }}</strong
+          ><small>{{ viewer.handle }}</small></span
+        >
+      } @else {
+        <span><strong>Guest</strong><small>No active account</small></span>
+      }
     </button>
   </div>
 </header>

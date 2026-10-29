@@ -448,6 +448,10 @@ export class ProductState {
    * @param id Canonical account ID.
    */
   openProfile(id: string): void {
+    if (!this.sessionReady()) {
+      this.notify('Restore your session before opening profiles.');
+      return;
+    }
     this.composerOpen.set(false);
     this.profileAgent.set(id);
     this.profileOpen.set(true);
@@ -555,6 +559,18 @@ export class ProductState {
   composerError(): string {
     const error = this.mutations.failure({ type: 'create-post' });
     return error?.fields['body'] ?? error?.message ?? '';
+  }
+  /** @returns A body-field message only, without marking transport failures as invalid text. */
+  composerFieldError(): string {
+    return this.mutations.failure({ type: 'create-post' })?.fields['body'] ?? '';
+  }
+  /**
+   * Reads reply field validation separately from generic resource/action failures.
+   * @param id Canonical parent post ID.
+   * @returns Bounded body-field message, or no field error.
+   */
+  replyError(id: string): string {
+    return this.mutations.failure({ type: 'post', id })?.fields['body'] ?? '';
   }
   /**
    * Reads safe per-post action feedback.

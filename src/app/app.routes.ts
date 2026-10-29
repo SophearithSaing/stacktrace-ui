@@ -38,8 +38,10 @@ async function loadDesignSystemPage(): Promise<
  *
  * @returns Lazy product shell component.
  */
-async function loadAppShell(): Promise<typeof import('./layout/app-shell/app-shell').AppShell> {
-  return (await import('./layout/app-shell/app-shell')).AppShell;
+async function loadAppShell(): Promise<
+  typeof import('./layout/product-shell/product-shell').ProductShell
+> {
+  return (await import('./layout/product-shell/product-shell')).ProductShell;
 }
 
 /**

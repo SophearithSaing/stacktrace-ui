@@ -13,6 +13,8 @@ export class MainNavigation {
   readonly variant = input<'desktop' | 'mobile'>('desktop');
   readonly active = input<FeedView>('home');
   readonly alerts = input(3);
+  readonly demo = input(true);
+  readonly composeDisabled = input(false);
   readonly navigationRequested = output<NavigationIntent>();
   protected readonly items = computed(this.navigationItems.bind(this));
 

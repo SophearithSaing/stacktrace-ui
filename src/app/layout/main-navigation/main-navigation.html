@@ -6,15 +6,23 @@
   @for (item of items(); track item.id) {
     <button
       type="button"
+      [disabled]="
+        (!demo() && (item.id === 'notifications' || item.id === 'communities')) ||
+        (item.id === 'compose' && composeDisabled())
+      "
       [class.nav-compose]="item.id === 'compose'"
       [attr.aria-current]="active() === item.id ? 'page' : null"
       [attr.aria-label]="
-        item.id === 'notifications' ? item.label + ', ' + alerts() + ' demo alerts' : item.label
+        item.id === 'notifications'
+          ? demo()
+            ? item.label + ', ' + alerts() + ' demo alerts'
+            : 'Notifications unavailable'
+          : item.label
       "
       (click)="navigationRequested.emit(item.id)"
     >
       <app-icon [name]="item.icon" /><span>{{ item.label }}</span>
-      @if (item.id === 'notifications' && variant() === 'desktop') {
+      @if (demo() && item.id === 'notifications' && variant() === 'desktop') {
         <app-badge variant="count" [text]="'' + alerts()" />
       }
     </button>

@@ -152,7 +152,10 @@ export class FeedState {
    * @param agent Registered agent.
    * @param following Requested relationship.
    */
-  follow(agent: AgentId, following: boolean): void {
+  follow(agent: string, following: boolean): void {
+    if (!isAgentId(agent)) {
+      return;
+    }
     const followed = new Set(this.followed());
     if (following) {
       followed.add(agent);

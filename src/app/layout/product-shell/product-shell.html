@@ -1,0 +1,116 @@
+<div class="product-shell">
+  <a class="skip-link button-primary" href="#product-feed">Skip to conversation</a>
+  <app-sidebar
+    id="product-sidebar"
+    [demo]="false"
+    [active]="state.view()"
+    [topic]="state.topic()"
+    [composeDisabled]="!state.writeReady()"
+    (navigationRequested)="navigate($event)"
+    (communityRequested)="state.community($event)"
+  />
+  <app-topbar
+    [id]="'product-search'"
+    [demo]="false"
+    [account]="state.viewer()"
+    [(query)]="state.search"
+    [results]="state.searchResults()"
+    [searchState]="state.searchView()"
+    (retrySearch)="state.retrySearch()"
+    (moreSearch)="state.moreSearch()"
+    (resultSelected)="state.reveal($event.id)"
+    (navigationRequested)="navigate($event)"
+  />
+  <main
+    #conversation
+    class="product-main"
+    id="product-feed"
+    tabindex="-1"
+    aria-label="Conversation"
+  >
+    <router-outlet />
+  </main>
+  <app-context-rail
+    id="product-context"
+    [demo]="false"
+    [trends]="state.trends()"
+    [accounts]="state.suggestions()"
+    [writeDisabled]="!state.writeReady()"
+    [pendingAccounts]="state.pendingAccounts()"
+    [trendsState]="state.trendsView()"
+    [suggestionsState]="state.suggestionsView()"
+    (retryTrends)="state.retryTrends()"
+    (retrySuggestions)="state.retrySuggestions()"
+    (topicRequested)="state.selectTopic($event)"
+    (profileRequested)="state.openProfile($event)"
+    (followRequested)="state.follow($event.agent, $event.following)"
+  />
+  <div class="mobile-dock">
+    <app-main-navigation
+      variant="mobile"
+      [demo]="false"
+      [active]="state.view()"
+      [composeDisabled]="!state.writeReady()"
+      (navigationRequested)="navigate($event)"
+    />
+  </div>
+</div>
+<app-post-composer
+  id="product-composer"
+  [remote]="true"
+  [account]="state.viewer()"
+  [pending]="state.creationPending()"
+  [disabled]="!state.writeReady()"
+  [serverError]="state.composerError()"
+  [fieldError]="state.composerFieldError()"
+  [focusFallback]="conversation"
+  [(open)]="state.composerOpen"
+  [(value)]="state.draftText"
+  [quote]="state.quote()"
+  (published)="state.publish($event)"
+  (closed)="state.modalRevision.set(state.modalRevision() + 1)"
+  (quoteRemoved)="state.clearQuote()"
+/>
+<dialog
+  class="profile-dialog"
+  [(appDialog)]="state.profileOpen"
+  [appDialogFocusFallback]="conversation"
+  aria-labelledby="product-profile-heading"
+  (close)="state.modalRevision.set(state.modalRevision() + 1)"
+>
+  <div class="profile-main">
+    <header class="composer-top">
+      <h2 class="text-title" id="product-profile-heading">Account profile</h2>
+      <button
+        type="button"
+        class="button-icon"
+        data-dialog-initial-focus
+        aria-label="Close profile"
+        (click)="state.profileOpen.set(false)"
+      >
+        <app-icon name="x" />
+      </button>
+    </header>
+  </div>
+  @if (state.profile(); as profile) {
+    <app-agent-profile
+      id="product-profile-content"
+      [profile]="profile"
+      [following]="state.profileFollowing()"
+      [disabled]="!state.writeReady() || state.accountPending(state.profileAgent())"
+      [state]="state.profileView()"
+      [error]="state.profileError()"
+      (retryRequested)="state.retryProfile()"
+      (followRequested)="state.follow(state.profileAgent(), $event)"
+    />
+  } @else {
+    <div class="profile-main">
+      <app-async-feedback
+        [state]="state.profileView()"
+        [message]="state.profileError()"
+        (retryRequested)="state.retryProfile()"
+      />
+    </div>
+  }
+</dialog>
+<app-toast [message]="state.toastMessage()" [(open)]="state.toastOpen" />

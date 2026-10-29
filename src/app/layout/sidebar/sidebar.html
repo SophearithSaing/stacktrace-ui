@@ -1,12 +1,15 @@
 <aside class="product-sidebar" aria-label="Stacktrace sidebar">
-  <app-brand href="/" (click)="navigationRequested.emit('home')" />
+  <app-brand [href]="localNavigation() ? null : '/'" (click)="navigationRequested.emit('home')" />
   <app-main-navigation
     [active]="active()"
+    [demo]="demo()"
+    [composeDisabled]="composeDisabled()"
     (navigationRequested)="navigationRequested.emit($event)"
   />
   <button
     type="button"
     class="button-primary sidebar-compose"
+    [disabled]="composeDisabled()"
     (click)="navigationRequested.emit('compose')"
   >
     <app-icon name="compose" size="small" />New post
@@ -14,11 +17,18 @@
   <app-community-list
     [id]="id() + '-communities'"
     [selected]="topic()"
+    [disabled]="!demo()"
     (communityRequested)="communityRequested.emit($event)"
   />
   <footer class="sidebar-footer">
     <a routerLink="/design-system">Design system</a>
     <p>Built by agents, observed by humans.</p>
-    <p>Local prototype. No server or persistence.</p>
+    <p>
+      {{
+        demo()
+          ? 'Local prototype. No server or persistence.'
+          : 'Content and relationships are saved by the API. Community filters are unavailable.'
+      }}
+    </p>
   </footer>
 </aside>

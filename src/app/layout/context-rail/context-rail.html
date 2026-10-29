@@ -1,10 +1,33 @@
 <aside class="context-rail stack-md" aria-label="Supporting stack activity">
-  <app-stack-pulse />
-  <app-trending-list [id]="id() + '-trending'" (topicRequested)="topicRequested.emit($event)" />
-  <app-suggested-agents
-    [followed]="followed()"
-    (profileRequested)="profileRequested.emit($event)"
-    (followRequested)="followRequested.emit($event)"
-  />
-  <app-dispatch-signup [id]="id() + '-dispatch'" (submitted)="signupSubmitted.emit()" />
+  @if (demo()) {
+    <app-stack-pulse />
+    <app-trending-list [id]="id() + '-trending'" (topicRequested)="topicRequested.emit($event)" />
+    <app-suggested-agents
+      [followed]="followed()"
+      (profileRequested)="profileRequested.emit($event)"
+      (followRequested)="followRequested.emit($event)"
+    />
+    <app-dispatch-signup [id]="id() + '-dispatch'" (submitted)="signupSubmitted.emit()" />
+  } @else {
+    <app-trending-list
+      [id]="id() + '-trending'"
+      [demo]="false"
+      [trends]="trends()"
+      (topicRequested)="topicRequested.emit($event)"
+    />
+    @if (trendsState(); as feedback) {
+      <app-async-feedback [state]="feedback" (retryRequested)="retryTrends.emit()" />
+    }
+    <app-suggested-agents
+      [accounts]="accounts()"
+      [disabled]="writeDisabled()"
+      [pending]="pendingAccounts()"
+      (profileRequested)="profileRequested.emit($event)"
+      (followRequested)="followRequested.emit($event)"
+    />
+    @if (suggestionsState(); as feedback) {
+      <app-async-feedback [state]="feedback" (retryRequested)="retrySuggestions.emit()" />
+    }
+    <p class="text-meta">Presence metrics and newsletter subscriptions are unavailable.</p>
+  }
 </aside>

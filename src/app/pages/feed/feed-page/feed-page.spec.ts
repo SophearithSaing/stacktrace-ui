@@ -1,68 +1,39 @@
 import { TestBed } from '@angular/core/testing';
-import { FeedPage } from './feed-page';
-import { FeedState } from '../../../core/state/feed-state';
-import axe from 'axe-core';
-import { element, render } from '../../../shared/ui/testing/component-fixture';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { post, setupApi } from '../../../core/api/testing/http';
 
-describe('FeedPage', (): void => {
+describe('FeedPage product integration', (): void => {
+  let http: HttpTestingController;
   beforeEach((): void => {
-    TestBed.configureTestingModule({ providers: [FeedState] });
+    ({ http } = setupApi());
   });
-  it('composes all posts and filters through real shared tabs', async (): Promise<void> => {
-    const fixture = await render(FeedPage);
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('app-post')).toHaveLength(9);
-    element<HTMLButtonElement>(fixture, '#feed-tabs-tab-spicy').click();
-    fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('app-post')).toHaveLength(3);
-    expect(element(fixture, '[role="tabpanel"]').getAttribute('aria-labelledby')).toBe(
-      'feed-tabs-tab-spicy',
-    );
-  });
-  it('renders an actionable empty bookmarks view and local safe broadcasts', async (): Promise<void> => {
-    const fixture = await render(FeedPage);
-    const state = TestBed.inject(FeedState);
-    state.navigate('bookmarks');
-    fixture.detectChanges();
-    expect(element(fixture, 'app-empty-state')).toBeTruthy();
-    element<HTMLButtonElement>(fixture, 'app-empty-state button').click();
-    fixture.detectChanges();
-    expect(state.view()).toBe('home');
-    state.publish({ text: '<img src=x onerror=alert(1)>' });
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(element(fixture, 'app-post .post-copy').textContent).toContain('<img src=x');
-    expect(element(fixture, 'app-post').querySelector('img')).toBeNull();
-  });
+  afterEach((): void => http.verify());
 
-  it.each(['home', 'explore', 'bookmarks', 'communities'] as const)(
-    'has no structural accessibility violations in the %s view',
-    async (view): Promise<void> => {
-      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-      const fixture = await render(FeedPage);
-      const state = TestBed.inject(FeedState);
-      state.navigate(view);
-      fixture.detectChanges();
-      const result = await axe.run(fixture.nativeElement as HTMLElement, {
-        rules: { 'color-contrast': { enabled: false }, region: { enabled: false } },
-      });
-      expect(result.violations).toEqual([]);
-      vi.restoreAllMocks();
-    },
-  );
-
-  it('retains pending post focus until modal closure has completed', async (): Promise<void> => {
-    const fixture = await render(FeedPage);
-    const state = TestBed.inject(FeedState);
-    state.composerOpen.set(true);
-    state.focusedPost.set('typescript-result');
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(state.focusedPost()).toBe('typescript-result');
-    state.composerOpen.set(false);
-    state.modalRevision.set(1);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    expect(document.activeElement).toBe(element(fixture, '#post-typescript-result'));
-    expect(state.focusedPost()).toBe('');
+  it('renders public server rows and disables writes without disabling reply reads', async (): Promise<void> => {
+    const harness = await RouterTestingHarness.create('/');
+    http.expectOne('/api/v1/me').flush({ account: null, csrf_token: null });
+    TestBed.tick();
+    http.expectOne('/api/v1/feed?limit=20&view=for-you&sort=newest').flush({
+      items: [
+        { id: 'post:event', kind: 'post', occurred_at: post.created_at, reposter: null, post },
+      ],
+      next_cursor: null,
+    });
+    http.expectOne('/api/v1/trends?limit=6').flush({ items: [] });
+    http.expectOne('/api/v1/agents/suggested').flush({ items: [] });
+    harness.detectChanges();
+    const host = harness.routeNativeElement;
+    expect(host?.querySelectorAll('app-post')).toHaveLength(1);
+    expect(host?.querySelector<HTMLButtonElement>('.bookmark-action')?.disabled).toBe(true);
+    const replies = host?.querySelector<HTMLButtonElement>('[aria-label="Replies, 0"]');
+    expect(replies?.disabled).toBe(false);
+    replies?.click();
+    harness.detectChanges();
+    http
+      .expectOne(`/api/v1/posts/${post.id}/replies?limit=20&sort=oldest`)
+      .flush({ items: [], total_count: 0, next_cursor: null });
+    harness.detectChanges();
+    expect(host?.querySelector<HTMLButtonElement>('app-reply-input button')?.disabled).toBe(true);
   });
 });

@@ -15,6 +15,9 @@ export class Sidebar {
   readonly id = input('sidebar');
   readonly active = input<FeedView>('home');
   readonly topic = input('');
+  readonly demo = input(true);
+  readonly localNavigation = input(false);
+  readonly composeDisabled = input(false);
   readonly navigationRequested = output<NavigationIntent>();
   readonly communityRequested = output<CommunityId>();
 }

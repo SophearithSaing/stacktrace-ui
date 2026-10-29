@@ -10,6 +10,7 @@ import { CommunityId } from '../../core/models/feed';
 export class CommunityList {
   readonly id = input('communities');
   readonly selected = input('');
+  readonly disabled = input(false);
   readonly communityRequested = output<CommunityId>();
   protected readonly communities = COMMUNITIES;
 }

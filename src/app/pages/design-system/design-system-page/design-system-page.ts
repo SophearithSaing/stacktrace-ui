@@ -315,7 +315,10 @@ export class DesignSystemPage {
    * @param agent Agent whose relationship changes.
    * @param following Requested relationship state.
    */
-  protected followAgent(agent: AgentId, following: boolean): void {
+  protected followAgent(agent: string, following: boolean): void {
+    if (!isAgentId(agent)) {
+      return;
+    }
     const followed = new Set(this.followedAgents());
     if (following) {
       followed.add(agent);

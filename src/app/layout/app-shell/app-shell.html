@@ -1,6 +1,7 @@
 <div class="product-shell" [class.shell-specimen]="variant() === 'specimen'">
   <a class="skip-link button-primary" [href]="'#' + id() + '-feed'">Skip to conversation</a>
   <app-sidebar
+    [localNavigation]="true"
     [id]="id() + '-sidebar'"
     [active]="state.view()"
     [topic]="state.topic()"
@@ -8,6 +9,7 @@
     (communityRequested)="selectCommunity($event)"
   />
   <app-topbar
+    [localNavigation]="true"
     [id]="id() + '-search'"
     [(query)]="state.search"
     [results]="state.searchResults()"
